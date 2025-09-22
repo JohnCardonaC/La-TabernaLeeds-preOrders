@@ -1,31 +1,31 @@
-# La Taberna - Sistema de Pre-Órdenes para Grupos
+# La Taberna - Group Pre-Order System
 
-## 1. El Problema que se Resuelve
+## 1. The Problem
 
-Este proyecto aborda la gestión de reservas de grupos (+6 personas) para el restaurante La Taberna. El alto volumen de pedidos de estos grupos, gestionados a través de `resdiary.com`, sobrecarga la capacidad de la cocina. El objetivo es crear una solución que automatice el proceso de pre-orden para estos grupos, permitiendo a la cocina prepararse con antelación, optimizar recursos y mejorar la eficiencia del servicio.
+This project addresses the management of group bookings (+6 people) for the La Taberna restaurant. The high volume of orders from these groups, managed via `resdiary.com`, is overloading the kitchen's capacity. The objective is to create a solution that automates the pre-order process for these groups, allowing the kitchen to prepare in advance, optimise resources, and improve service efficiency.
 
-## 2. La Solución
+## 2. The Solution
 
-Se está construyendo un sistema automatizado en dos fases principales:
+An automated system is being built in two main phases:
 
-### Fase 1: Automatización y Almacenamiento de Datos (Completada)
+### Phase 1: Data Automation and Storage (Completed)
 
-Un agente de automatización (Google Apps Script) monitorea un buzón de Gmail en busca de correos de reserva de `resdiary.com`. Este agente extrae los datos clave de la reserva y los almacena de forma segura en una base de datos de **Supabase**. Esto elimina la necesidad de procesar manualmente cada correo electrónico.
+An automation agent (Google Apps Script) monitors a Gmail inbox for booking emails from `resdiary.com`. This agent extracts key booking data and stores it securely in a **Supabase** database. This eliminates the need to manually process each email.
 
-### Fase 2: Portal de Pre-Órdenes y Notificaciones (En Desarrollo)
+### Phase 2: Pre-Order Portal and Notifications (In Development)
 
-Esta es la fase actual del proyecto, que se está desarrollando en este repositorio. El objetivo es construir dos aplicaciones web y la lógica de backend necesaria:
+This is the current phase of the project, being developed in this repository. The goal is to build two web applications and the necessary backend logic:
 
-1.  **Página de Pre-Orden (para el Cliente):** Una página web a la que los clientes accederán a través de un enlace único enviado por correo electrónico. Aquí podrán ver los detalles de su reserva y seleccionar los platos para su grupo.
-2.  **Panel de Administración (para el Staff):** Un panel interno donde el personal del restaurante podrá gestionar los menús, ver las reservas del día y revisar las pre-órdenes enviadas por los clientes.
-3.  **Notificaciones Automáticas:** Una función automatizada (*Edge Function* en Supabase) que se activará con cada nueva reserva, generará el enlace único y lo enviará por correo electrónico al cliente.
+1.  **Pre-Order Page (for the Customer):** A web page that customers will access via a unique link sent by email. Here, they can view their booking details and select dishes for their group.
+2.  **Admin Panel (for Staff):** An internal panel where restaurant staff can manage menus, view the day's bookings, and review pre-orders submitted by customers.
+3.  **Automated Notifications:** An automated function (*Supabase Edge Function*) that will trigger with each new booking, generate the unique link, and email it to the customer.
 
-## 3. Stack Tecnológico
+## 3. Technology Stack
 
-*   **Frontend:** Next.js 14 (App Router) con TypeScript
-*   **Estilos:** Tailwind CSS
-*   **Base de Datos:** Supabase (PostgreSQL)
-*   **Autenticación:** Supabase Auth
-*   **Despliegue:** Vercel
-*   **Validación de Datos:** Zod
-*   **Gestión de Estado del Servidor:** TanStack React Query
+*   **Frontend:** Next.js 14 (App Router) with TypeScript
+*   **Styling:** Tailwind CSS
+*   **Database:** Supabase (PostgreSQL)
+*   **Authentication:** Supabase Auth
+*   **Deployment:** Vercel
+*   **Data Validation:** Zod
+*   **Server State Management:** TanStack React Query
