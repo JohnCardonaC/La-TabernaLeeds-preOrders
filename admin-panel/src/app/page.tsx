@@ -7,7 +7,7 @@ import DashboardView from './dashboard-view';
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: { date?: string };
+  searchParams: Promise<{ date?: string }>;
 }) {
   const cookieStore = cookies();
   const supabase = await createClient();
@@ -20,8 +20,9 @@ export default async function DashboardPage({
     redirect('/login');
   }
 
-  const selectedDate = searchParams.date
-    ? new Date(searchParams.date)
+  const params = await searchParams;
+  const selectedDate = params.date
+    ? new Date(params.date)
     : new Date();
 
   // Adjust for timezone differences by setting time to noon
