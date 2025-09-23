@@ -24,7 +24,7 @@ export default function ThankYouPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Thank You!</h1>
           <p className="text-gray-600">
-            Your pre-order has been submitted successfully. We'll start preparing your dishes for your arrival.
+            Your pre-order has been submitted successfully. We&#39;ll start preparing your dishes for your arrival.
           </p>
         </div>
 
