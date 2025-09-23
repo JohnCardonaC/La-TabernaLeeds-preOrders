@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd preOrders/admin-panel && npm run build",
+  "outputDirectory": "preOrders/admin-panel/.next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "rootDirectory": "preOrders/admin-panel"
+}
