@@ -41,8 +41,8 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
             src="/images/logo-black.webp"
             alt="La Taberna Logo"
             width={150}
-            height={50}
-            className="h-12 w-auto"
+            height={150}
+            className="h-22 w-auto"
           />
         </div>
 
