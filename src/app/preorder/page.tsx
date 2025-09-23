@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,7 @@ interface MenuItem {
   photo_url: string | null;
 }
 
-export default function PreOrderPage() {
+function PreOrderContent() {
   const searchParams = useSearchParams();
   const ref = searchParams.get('ref');
   const [booking, setBooking] = useState<Booking | null>(null);
@@ -469,5 +469,17 @@ export default function PreOrderPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function PreOrderPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    }>
+      <PreOrderContent />
+    </Suspense>
   );
 }
