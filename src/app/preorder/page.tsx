@@ -30,7 +30,7 @@ interface MenuItem {
 
 function PreOrderContent() {
   const searchParams = useSearchParams();
-  const ref = searchParams.get('ref');
+  const token = searchParams.get('token');
   const [booking, setBooking] = useState<Booking | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,58 +45,91 @@ function PreOrderContent() {
   const [orderName, setOrderName] = useState('');
   const [orderMode, setOrderMode] = useState<'individual' | 'group' | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [currentToken, setCurrentToken] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!ref) {
-      setError('No booking reference provided');
+    if (!token) {
+      setError('No access token provided');
       setLoading(false);
       return;
     }
 
     const fetchBooking = async () => {
       const supabase = createClient();
-      const { data, error } = await supabase
-        .from('bookings')
+
+      // First, validate the token
+      const { data: tokenData, error: tokenError } = await supabase
+        .from('access_tokens')
         .select(`
-          id,
-          booking_reference,
-          booking_date,
-          booking_time,
-          number_of_people,
-          customers (
-            customer_name,
-            customer_email,
-            customer_mobile
+          booking_id,
+          expires_at,
+          used,
+          bookings (
+            id,
+            booking_reference,
+            booking_date,
+            booking_time,
+            number_of_people,
+            customers (
+              customer_name,
+              customer_email,
+              customer_mobile
+            )
           )
         `)
-        .eq('booking_reference', ref)
+        .eq('token', token)
         .single();
 
-      if (error) {
-        setError('Booking not found');
+      if (tokenError || !tokenData) {
+        setError('Invalid or expired access token');
+        setLoading(false);
+        return;
+      }
+
+      // Check if token is expired
+      const now = new Date();
+      const expiresAt = new Date(tokenData.expires_at);
+      if (now > expiresAt) {
+        setError('Access token has expired');
+        setLoading(false);
+        return;
+      }
+
+      // Check if token is used (optional, depending on policy)
+      if (tokenData.used) {
+        setError('Access token has already been used');
         setLoading(false);
         return;
       }
 
       // Transform data to match interface
-      const customers = data.customers as unknown as { customer_name: string; customer_email: string; customer_mobile: string };
+      const bookingData = tokenData.bookings as unknown as {
+        id: string;
+        booking_reference: string;
+        booking_date: string;
+        booking_time: string;
+        number_of_people: number;
+        customers: { customer_name: string; customer_email: string; customer_mobile: string };
+      };
+
       const transformedBooking: Booking = {
-        id: data.id,
-        booking_reference: data.booking_reference,
-        booking_date: data.booking_date,
-        booking_time: data.booking_time,
-        number_of_people: data.number_of_people,
-        customer_name: customers.customer_name,
-        customer_email: customers.customer_email,
-        customer_mobile: customers.customer_mobile,
+        id: bookingData.id,
+        booking_reference: bookingData.booking_reference,
+        booking_date: bookingData.booking_date,
+        booking_time: bookingData.booking_time,
+        number_of_people: bookingData.number_of_people,
+        customer_name: bookingData.customers.customer_name,
+        customer_email: bookingData.customers.customer_email,
+        customer_mobile: bookingData.customers.customer_mobile,
       };
 
       setBooking(transformedBooking);
+      setCurrentToken(token);
       setLoading(false);
     };
 
     fetchBooking();
-  }, [ref]);
+  }, [token]);
 
   const handleEmailVerification = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -272,6 +305,12 @@ function PreOrderContent() {
         setSubmitting(false);
         return;
       }
+
+      // Mark token as used after successful submission
+      await supabase
+        .from('access_tokens')
+        .update({ used: true })
+        .eq('token', currentToken);
 
       // Redirect to thank you page
       window.location.href = '/thank-you';

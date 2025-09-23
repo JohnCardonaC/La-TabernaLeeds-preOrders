@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Copy, CheckCircle } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import AdminLayout from '@/components/AdminLayout';
+import { createClient } from '@/lib/supabase/client';
 
 type Booking = {
   id: string;
@@ -31,6 +32,7 @@ type Booking = {
   booking_time: string;
   number_of_people: number;
   pre_order_status: 'Completed' | 'Not Sent';
+  shareToken?: string;
 };
 
 export default function DashboardView({ bookings }: { bookings: Booking[] }) {
@@ -42,6 +44,30 @@ export default function DashboardView({ bookings }: { bookings: Booking[] }) {
   const initialDate = selectedDate ? new Date(`${selectedDate}T00:00:00`) : new Date();
   const [date, setDate] = useState<Date | undefined>(initialDate);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [copiedId, setCopied] = useState<string | null>(null);
+
+  const handleCopyLink = async (bookingId: string) => {
+    try {
+      const supabase = createClient();
+      const { data: tokenData, error } = await supabase
+        .from('access_tokens')
+        .select('token')
+        .eq('booking_id', bookingId)
+        .single();
+
+      if (error || !tokenData) {
+        alert('Token not found. Make sure the booking exists and tokens are generated.');
+        return;
+      }
+
+      const link = `${window.location.origin}/preorder?token=${tokenData.token}`;
+      await navigator.clipboard.writeText(link);
+      setCopied(bookingId);
+      setTimeout(() => setCopied(null), 2000);
+    } catch (err) {
+      alert('Failed to copy link to clipboard.');
+    }
+  };
 
   const handleDateSelect = (selectedDay: Date | undefined) => {
     setDate(selectedDay);
@@ -91,6 +117,7 @@ export default function DashboardView({ bookings }: { bookings: Booking[] }) {
               <TableHead>Customer</TableHead>
               <TableHead className="text-center">Guests</TableHead>
               <TableHead className="text-center w-[180px]">Pre-Order Status</TableHead>
+              <TableHead className="text-center">Share Link</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -112,11 +139,21 @@ export default function DashboardView({ bookings }: { bookings: Booking[] }) {
                       {booking.pre_order_status}
                     </span>
                   </TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      onClick={() => handleCopyLink(booking.id)}
+                      variant="ghost"
+                      className="p-2"
+                      title="Copy share link"
+                    >
+                      {copiedId === booking.id ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center text-gray-500">
+                <TableCell colSpan={5} className="h-24 text-center text-gray-500">
                   No bookings found for this date.
                 </TableCell>
               </TableRow>
