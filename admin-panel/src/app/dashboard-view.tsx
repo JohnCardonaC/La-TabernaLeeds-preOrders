@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 
@@ -62,7 +63,17 @@ export default function DashboardView({ bookings }: { bookings: Booking[] }) {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <header className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-800">Bookings Dashboard</h1>
+        <div className="flex items-center space-x-6">
+          <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
+          <nav className="flex space-x-4">
+            <Link href="/" className="text-gray-600 hover:text-gray-800 font-medium">
+              Dashboard
+            </Link>
+            <Link href="/menu" className="text-gray-600 hover:text-gray-800 font-medium">
+              Menu
+            </Link>
+          </nav>
+        </div>
         <Button variant="outline" onClick={handleSignOut}>
           Sign Out
         </Button>

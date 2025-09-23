@@ -1,0 +1,374 @@
+"use client";
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { createClient } from '@/lib/supabase/client';
+
+type MenuItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  category: string;
+};
+
+export default function MenuPage() {
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    category: '',
+  });
+  const router = useRouter();
+  const supabase = createClient();
+
+  useEffect(() => {
+    const checkAuthAndFetch = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('menus')
+        .select('*')
+        .order('category', { ascending: true })
+        .order('name', { ascending: true });
+
+      if (error) {
+        setError('Error loading menu items.');
+        console.error(error);
+      } else {
+        setMenuItems(data || []);
+      }
+      setLoading(false);
+    };
+
+    checkAuthAndFetch();
+  }, [supabase, router]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEdit = (item: MenuItem) => {
+    setIsEditMode(true);
+    setEditingItem(item);
+    setFormData({
+      name: item.name,
+      description: item.description || '',
+      price: item.price.toString(),
+      category: item.category,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (item: MenuItem) => {
+    if (!confirm(`Are you sure you want to delete "${item.name}"?`)) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from('menus')
+      .delete()
+      .eq('id', item.id);
+
+    if (error) {
+      console.error('Error deleting menu item:', error);
+      alert('Error deleting menu item.');
+    } else {
+      setMenuItems(prev => prev.filter(i => i.id !== item.id));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { name, description, price, category } = formData;
+    const numericPrice = parseFloat(price);
+
+    if (!name || !price || !category || isNaN(numericPrice)) {
+      alert('Please fill all required fields with valid data.');
+      return;
+    }
+
+    if (isEditMode && editingItem) {
+      // Update
+      const { error } = await supabase
+        .from('menus')
+        .update({ name, description: description || null, price: numericPrice, category })
+        .eq('id', editingItem.id);
+
+      if (error) {
+        console.error('Error updating menu item:', error);
+        alert('Error updating menu item.');
+      } else {
+        // Refresh the list
+        const { data } = await supabase
+          .from('menus')
+          .select('*')
+          .order('category', { ascending: true })
+          .order('name', { ascending: true });
+        setMenuItems(data || []);
+        setFormData({ name: '', description: '', price: '', category: '' });
+        setIsEditMode(false);
+        setEditingItem(null);
+        setIsDialogOpen(false);
+      }
+    } else {
+      // Create
+      const { error } = await supabase
+        .from('menus')
+        .insert([{ name, description: description || null, price: numericPrice, category }]);
+
+      if (error) {
+        console.error('Error adding menu item:', error);
+        alert('Error adding menu item.');
+      } else {
+        // Refresh the list
+        const { data } = await supabase
+          .from('menus')
+          .select('*')
+          .order('category', { ascending: true })
+          .order('name', { ascending: true });
+        setMenuItems(data || []);
+        setFormData({ name: '', description: '', price: '', category: '' });
+        setIsDialogOpen(false);
+      }
+    }
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setIsEditMode(false);
+      setEditingItem(null);
+      setFormData({ name: '', description: '', price: '', category: '' });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-gray-50">
+        <header className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
+          <div className="flex items-center space-x-6">
+            <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
+            <nav className="flex space-x-4">
+              <Link href="/" className="text-gray-600 hover:text-gray-800 font-medium">
+                Dashboard
+              </Link>
+              <Link href="/menu" className="text-gray-600 hover:text-gray-800 font-medium">
+                Menu
+              </Link>
+            </nav>
+          </div>
+          <Button variant="outline" onClick={handleSignOut}>
+            Sign Out
+          </Button>
+        </header>
+        <main className="flex-1 p-8">
+          <p>Loading...</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col min-h-screen bg-gray-50">
+        <header className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
+          <div className="flex items-center space-x-6">
+            <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
+            <nav className="flex space-x-4">
+              <Link href="/" className="text-gray-600 hover:text-gray-800 font-medium">
+                Dashboard
+              </Link>
+              <Link href="/menu" className="text-gray-600 hover:text-gray-800 font-medium">
+                Menu
+              </Link>
+            </nav>
+          </div>
+          <Button variant="outline" onClick={handleSignOut}>
+            Sign Out
+          </Button>
+        </header>
+        <main className="flex-1 p-8">
+          <p className="text-red-500">{error}</p>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <header className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
+        <div className="flex items-center space-x-6">
+          <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
+          <nav className="flex space-x-4">
+            <Link href="/" className="text-gray-600 hover:text-gray-800 font-medium">
+              Dashboard
+            </Link>
+            <Link href="/menu" className="text-gray-600 hover:text-gray-800 font-medium">
+              Menu
+            </Link>
+          </nav>
+        </div>
+        <Button variant="outline" onClick={handleSignOut}>
+          Sign Out
+        </Button>
+      </header>
+      <main className="flex-1 p-8">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-gray-700">Menu Items</h2>
+          <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
+            <DialogTrigger asChild>
+              <Button>Create Menu Item</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>{isEditMode ? 'Edit Menu Item' : 'Add New Menu Item'}</DialogTitle>
+                <DialogDescription>
+                  {isEditMode ? 'Update the details for the menu item.' : 'Fill in the details for the new menu item.'}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit}>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Name
+                    </Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="description" className="text-right">
+                      Description
+                    </Label>
+                    <Input
+                      id="description"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="price" className="text-right">
+                      Price
+                    </Label>
+                    <Input
+                      id="price"
+                      name="price"
+                      type="number"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={handleInputChange}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="category" className="text-right">
+                      Category
+                    </Label>
+                    <Input
+                      id="category"
+                      name="category"
+                      value={formData.category}
+                      onChange={handleInputChange}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit">{isEditMode ? 'Update Item' : 'Add Item'}</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <div className="border rounded-lg bg-white shadow-sm">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-right">Price</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {menuItems.length > 0 ? (
+                menuItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell>{item.description || '-'}</TableCell>
+                    <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                    <TableCell>{item.category}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex justify-center space-x-2">
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
+                          Edit
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => handleDelete(item)}>
+                          Delete
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center text-gray-500">
+                    No menu items found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </main>
+    </div>
+  );
+}
