@@ -1,3 +1,7 @@
+"use client";
+
+import Link from 'next/link';
+
 export default function ThankYouPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8">
@@ -20,7 +24,7 @@ export default function ThankYouPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Thank You!</h1>
           <p className="text-gray-600">
-            Your pre-order has been submitted successfully. We&#39;ll start preparing your dishes for your arrival.
+            Your pre-order has been submitted successfully. We'll start preparing your dishes for your arrival.
           </p>
         </div>
 
@@ -29,12 +33,9 @@ export default function ThankYouPage() {
             If you need to make any changes to your order, please contact us directly.
           </p>
 
-          <button
-            onClick={() => window.location.href = '/'}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-          >
+          <Link href="/" className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors inline-block text-center">
             Return to Home
-          </button>
+          </Link>
         </div>
       </div>
     </div>
