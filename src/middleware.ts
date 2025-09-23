@@ -11,7 +11,8 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getSession();
 
   // Auth condition not met, redirect to login page.
-  if (!session && request.nextUrl.pathname !== '/login') {
+  // Allow public access to preorder page (it handles its own email verification)
+  if (!session && request.nextUrl.pathname !== '/login' && !request.nextUrl.pathname.startsWith('/preorder')) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);

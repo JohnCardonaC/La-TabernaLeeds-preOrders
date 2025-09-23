@@ -36,7 +36,7 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-lg flex flex-col">
         {/* Logo */}
-        <div className="p-6 border-b">
+        <div className="p-6 border-b flex justify-center">
           <Image
             src="/images/logo-black.webp"
             alt="La Taberna Logo"
