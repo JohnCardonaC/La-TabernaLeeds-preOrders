@@ -1,35 +1,71 @@
-'use client';
+import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { format, startOfDay, endOfDay } from 'date-fns';
+import DashboardView from './dashboard-view';
 
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-
-export default function DashboardPage() {
-  const router = useRouter();
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { date?: string };
+}) {
+  const cookieStore = cookies();
   const supabase = createClient();
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  return (
-    <div className="flex flex-col min-h-screen">
-      <header className="flex items-center justify-between p-4 border-b">
-        <h1 className="text-2xl font-bold">Daily Bookings</h1>
-        <Button variant="outline" onClick={handleSignOut}>
-          Sign Out
-        </Button>
-      </header>
-      <main className="flex-1 p-8">
-        <h2 className="text-xl mb-4">Today's Reservations</h2>
-        {/* Aquí se mostrará la lista de reservas del día */}
-        <div className="p-8 border-2 border-dashed border-gray-300 rounded-lg">
-          <p className="text-center text-gray-500">
-            Bookings list will be displayed here.
-          </p>
-        </div>
-      </main>
-    </div>
-  );
+  if (!session) {
+    redirect('/login');
+  }
+
+  const selectedDate = searchParams.date
+    ? new Date(searchParams.date)
+    : new Date();
+
+  // Adjust for timezone differences by setting time to noon
+  selectedDate.setHours(12, 0, 0, 0);
+
+  const startDate = format(startOfDay(selectedDate), 'yyyy-MM-dd HH:mm:ss');
+  const endDate = format(endOfDay(selectedDate), 'yyyy-MM-dd HH:mm:ss');
+
+  // Fetch bookings for the selected date range
+  const { data: bookings, error: bookingsError } = await supabase
+    .from('bookings')
+    .select('*')
+    .gte('booking_date', startDate)
+    .lte('booking_date', endDate)
+    .order('booking_time', { ascending: true });
+
+  if (bookingsError) {
+    console.error('Error fetching bookings:', bookingsError.message);
+    // Return view with empty bookings array on error
+    return <DashboardView bookings={[]} />;
+  }
+
+  // Fetch pre-orders to determine status
+  const bookingIds = bookings?.map((b) => b.id) || [];
+  const { data: preOrders, error: preOrdersError } = await supabase
+    .from('pre_orders')
+    .select('booking_id')
+    .in('booking_id', bookingIds);
+
+  if (preOrdersError) {
+    console.error('Error fetching pre-orders:', preOrdersError.message);
+    // Continue without status information on error
+  }
+
+  const preOrderBookingIds = new Set(preOrders?.map((p) => p.booking_id));
+
+  const bookingsWithStatus = bookings?.map((booking) => ({
+    ...booking,
+    // If a pre-order exists for the booking, we mark it as 'Completed'.
+    pre_order_status: preOrderBookingIds.has(booking.id)
+      ? 'Completed'
+      : 'Not Sent',
+  })) || [];
+
+
+  return <DashboardView bookings={bookingsWithStatus} />;
 }
