@@ -72,6 +72,9 @@ export default function DashboardView({ bookings }: { bookings: Booking[] }) {
             <Link href="/menu" className="text-gray-600 hover:text-gray-800 font-medium">
               Menu
             </Link>
+            <Link href="/pre-orders" className="text-gray-600 hover:text-gray-800 font-medium">
+              Pre-Orders
+            </Link>
           </nav>
         </div>
         <Button variant="outline" onClick={handleSignOut}>
