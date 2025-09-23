@@ -24,6 +24,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { createClient } from '@/lib/supabase/client';
+import AdminLayout from '@/components/AdminLayout';
 
 type MenuItem = {
   id: string;
@@ -182,193 +183,139 @@ export default function MenuPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50">
-        <header className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
-          <div className="flex items-center space-x-6">
-            <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
-            <nav className="flex space-x-4">
-              <Link href="/" className="text-gray-600 hover:text-gray-800 font-medium">
-                Dashboard
-              </Link>
-              <Link href="/menu" className="text-gray-600 hover:text-gray-800 font-medium">
-                Menu
-              </Link>
-            </nav>
-          </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            Sign Out
-          </Button>
-        </header>
-        <main className="flex-1 p-8">
-          <p>Loading...</p>
-        </main>
-      </div>
+      <AdminLayout currentPage="menu">
+        <p>Loading...</p>
+      </AdminLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50">
-        <header className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
-          <div className="flex items-center space-x-6">
-            <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
-            <nav className="flex space-x-4">
-              <Link href="/" className="text-gray-600 hover:text-gray-800 font-medium">
-                Dashboard
-              </Link>
-              <Link href="/menu" className="text-gray-600 hover:text-gray-800 font-medium">
-                Menu
-              </Link>
-            </nav>
-          </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            Sign Out
-          </Button>
-        </header>
-        <main className="flex-1 p-8">
-          <p className="text-red-500">{error}</p>
-        </main>
-      </div>
+      <AdminLayout currentPage="menu">
+        <p className="text-red-500">{error}</p>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <header className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
-        <div className="flex items-center space-x-6">
-          <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
-          <nav className="flex space-x-4">
-            <Link href="/" className="text-gray-600 hover:text-gray-800 font-medium">
-              Dashboard
-            </Link>
-            <Link href="/menu" className="text-gray-600 hover:text-gray-800 font-medium">
-              Menu
-            </Link>
-          </nav>
-        </div>
-        <Button variant="outline" onClick={handleSignOut}>
-          Sign Out
-        </Button>
-      </header>
-      <main className="flex-1 p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-700">Menu Items</h2>
-          <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
-            <DialogTrigger asChild>
-              <Button>Create Menu Item</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>{isEditMode ? 'Edit Menu Item' : 'Add New Menu Item'}</DialogTitle>
-                <DialogDescription>
-                  {isEditMode ? 'Update the details for the menu item.' : 'Fill in the details for the new menu item.'}
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit}>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
-                      Name
-                    </Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="col-span-3"
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="description" className="text-right">
-                      Description
-                    </Label>
-                    <Input
-                      id="description"
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="price" className="text-right">
-                      Price
-                    </Label>
-                    <Input
-                      id="price"
-                      name="price"
-                      type="number"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={handleInputChange}
-                      className="col-span-3"
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="category" className="text-right">
-                      Category
-                    </Label>
-                    <Input
-                      id="category"
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      className="col-span-3"
-                      required
-                    />
-                  </div>
+    <AdminLayout currentPage="menu">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold text-gray-800">Menu Items</h2>
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
+          <DialogTrigger asChild>
+            <Button>Create Menu Item</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>{isEditMode ? 'Edit Menu Item' : 'Add New Menu Item'}</DialogTitle>
+              <DialogDescription>
+                {isEditMode ? 'Update the details for the menu item.' : 'Fill in the details for the new menu item.'}
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit}>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="name" className="text-right">
+                    Name
+                  </Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="col-span-3"
+                    required
+                  />
                 </div>
-                <DialogFooter>
-                  <Button type="submit">{isEditMode ? 'Update Item' : 'Add Item'}</Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-        <div className="border rounded-lg bg-white shadow-sm">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Price</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {menuItems.length > 0 ? (
-                menuItems.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{item.description || '-'}</TableCell>
-                    <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                    <TableCell>{item.category}</TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex justify-center space-x-2">
-                        <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
-                          Edit
-                        </Button>
-                        <Button variant="destructive" size="sm" onClick={() => handleDelete(item)}>
-                          Delete
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-gray-500">
-                    No menu items found.
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="description" className="text-right">
+                    Description
+                  </Label>
+                  <Input
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="price" className="text-right">
+                    Price
+                  </Label>
+                  <Input
+                    id="price"
+                    name="price"
+                    type="number"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={handleInputChange}
+                    className="col-span-3"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="category" className="text-right">
+                    Category
+                  </Label>
+                  <Input
+                    id="category"
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className="col-span-3"
+                    required
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit">{isEditMode ? 'Update Item' : 'Add Item'}</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+      <div className="border rounded-lg bg-white shadow-sm">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead className="text-right">Price</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {menuItems.length > 0 ? (
+              menuItems.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">{item.name}</TableCell>
+                  <TableCell>{item.description || '-'}</TableCell>
+                  <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                  <TableCell>{item.category}</TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex justify-center space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
+                        Edit
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDelete(item)}>
+                        Delete
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </main>
-    </div>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center text-gray-500">
+                  No menu items found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </AdminLayout>
   );
 }

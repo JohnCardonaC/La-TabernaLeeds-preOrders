@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { createClient } from '@/lib/supabase/client';
+import AdminLayout from '@/components/AdminLayout';
 
 type PreOrderWithBooking = {
   id: string;
@@ -62,7 +63,7 @@ export default function PreOrdersPage() {
         setError('Error loading pre-orders.');
         console.error(error);
       } else {
-        setPreOrders(data || []);
+        setPreOrders((data as any) || []);
       }
       setLoading(false);
     };
@@ -77,122 +78,59 @@ export default function PreOrdersPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50">
-        <header className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
-          <div className="flex items-center space-x-6">
-            <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
-            <nav className="flex space-x-4">
-              <Link href="/" className="text-gray-600 hover:text-gray-800 font-medium">
-                Dashboard
-              </Link>
-              <Link href="/menu" className="text-gray-600 hover:text-gray-800 font-medium">
-                Menu
-              </Link>
-              <Link href="/pre-orders" className="text-gray-600 hover:text-gray-800 font-medium">
-                Pre-Orders
-              </Link>
-            </nav>
-          </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            Sign Out
-          </Button>
-        </header>
-        <main className="flex-1 p-8">
-          <p>Loading...</p>
-        </main>
-      </div>
+      <AdminLayout currentPage="pre-orders">
+        <p>Loading...</p>
+      </AdminLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50">
-        <header className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
-          <div className="flex items-center space-x-6">
-            <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
-            <nav className="flex space-x-4">
-              <Link href="/" className="text-gray-600 hover:text-gray-800 font-medium">
-                Dashboard
-              </Link>
-              <Link href="/menu" className="text-gray-600 hover:text-gray-800 font-medium">
-                Menu
-              </Link>
-              <Link href="/pre-orders" className="text-gray-600 hover:text-gray-800 font-medium">
-                Pre-Orders
-              </Link>
-            </nav>
-          </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            Sign Out
-          </Button>
-        </header>
-        <main className="flex-1 p-8">
-          <p className="text-red-500">{error}</p>
-        </main>
-      </div>
+      <AdminLayout currentPage="pre-orders">
+        <p className="text-red-500">{error}</p>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <header className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
-        <div className="flex items-center space-x-6">
-          <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
-          <nav className="flex space-x-4">
-            <Link href="/" className="text-gray-600 hover:text-gray-800 font-medium">
-              Dashboard
-            </Link>
-            <Link href="/menu" className="text-gray-600 hover:text-gray-800 font-medium">
-              Menu
-            </Link>
-            <Link href="/pre-orders" className="text-gray-600 hover:text-gray-800 font-medium">
-              Pre-Orders
-            </Link>
-          </nav>
-        </div>
-        <Button variant="outline" onClick={handleSignOut}>
-          Sign Out
-        </Button>
-      </header>
-      <main className="flex-1 p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-700">Pre-Orders</h2>
-        </div>
-        <div className="border rounded-lg bg-white shadow-sm">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Pre-Order Name</TableHead>
-                <TableHead>Booking Date</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead className="text-center">Guests</TableHead>
-                <TableHead>Submitted At</TableHead>
-                <TableHead>Notes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {preOrders.length > 0 ? (
-                preOrders.map((preOrder) => (
-                  <TableRow key={preOrder.id}>
-                    <TableCell className="font-medium">{preOrder.name}</TableCell>
-                    <TableCell>{preOrder.booking.booking_date} {preOrder.booking.booking_time.substring(0, 5)}</TableCell>
-                    <TableCell>{preOrder.booking.customer_name}</TableCell>
-                    <TableCell className="text-center">{preOrder.booking.number_of_people}</TableCell>
-                    <TableCell>{new Date(preOrder.submitted_at).toLocaleString()}</TableCell>
-                    <TableCell>{preOrder.customer_notes || '-'}</TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-gray-500">
-                    No pre-orders found.
-                  </TableCell>
+    <AdminLayout currentPage="pre-orders">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold text-gray-800">Pre-Orders</h2>
+      </div>
+      <div className="border rounded-lg bg-white shadow-sm">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Pre-Order Name</TableHead>
+              <TableHead>Booking Date</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead className="text-center">Guests</TableHead>
+              <TableHead>Submitted At</TableHead>
+              <TableHead>Notes</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {preOrders.length > 0 ? (
+              preOrders.map((preOrder) => (
+                <TableRow key={preOrder.id}>
+                  <TableCell className="font-medium">{preOrder.name}</TableCell>
+                  <TableCell>{preOrder.booking.booking_date} {preOrder.booking.booking_time.substring(0, 5)}</TableCell>
+                  <TableCell>{preOrder.booking.customer_name}</TableCell>
+                  <TableCell className="text-center">{preOrder.booking.number_of_people}</TableCell>
+                  <TableCell>{new Date(preOrder.submitted_at).toLocaleString()}</TableCell>
+                  <TableCell>{preOrder.customer_notes || '-'}</TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </main>
-    </div>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center text-gray-500">
+                  No pre-orders found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </AdminLayout>
   );
 }
