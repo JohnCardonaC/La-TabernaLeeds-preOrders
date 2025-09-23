@@ -10,7 +10,7 @@ export default async function DashboardPage({
   searchParams: { date?: string };
 }) {
   const cookieStore = cookies();
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { session },

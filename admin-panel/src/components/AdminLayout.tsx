@@ -42,7 +42,7 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
             alt="La Taberna Logo"
             width={150}
             height={50}
-            //className="h-12 w-auto"
+            className="h-12 w-auto"
           />
         </div>
 
