@@ -46,6 +46,7 @@ function PreOrderContent() {
   const [orderMode, setOrderMode] = useState<'individual' | 'group' | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
+  const [shareLink, setShareLink] = useState('');
 
   useEffect(() => {
     if (!token) {
@@ -131,6 +132,12 @@ function PreOrderContent() {
     fetchBooking();
   }, [token]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setShareLink(window.location.href);
+    }
+  }, []);
+
   const handleEmailVerification = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!booking || !emailInput.trim()) return;
@@ -182,37 +189,68 @@ function PreOrderContent() {
     return acc;
   }, {} as Record<string, MenuItem[]>);
 
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareLink);
+      alert('Link copied to clipboard!');
+    } catch (err) {
+      alert('Failed to copy link. Please copy it manually.');
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
-      </div>
+      <>
+        <div className="min-h-screen flex items-center justify-center">
+          <p>Loading...</p>
+        </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-500">{error}</p>
-      </div>
+      <>
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-red-500">{error}</p>
+        </div>
+      </>
     );
   }
 
   if (!booking) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>No booking data</p>
-      </div>
+      <>
+        <div className="min-h-screen flex items-center justify-center">
+          <p>No booking data</p>
+        </div>
+      </>
     );
   }
 
-  // Show email verification form if not verified yet
+  // Show email verification form
   if (!emailVerified) {
+    const firstName = booking.customer_name.split(' ')[0];
+
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8">
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-8 px-4 space-y-8">
+        <div className="text-center space-y-4">
+          <img
+            src="/images/logo-black.webp"
+            alt="La Taberna"
+            className="mx-auto h-30 w-auto"
+          />
+          <h1 className="text-2xl font-semibold text-gray-900">Hi, {firstName}!</h1>
+          <p className="text-sm text-gray-600 mt-2 max-w-prose mx-auto">
+            To optimise the service for a group like yours, we use this pre-order system. <br />
+            <br />
+           By confirming your order in advance, we facilitate preparation in the kitchen, reduce waiting time and ensure<strong> that everything goes perfectly on the day of your visit.</strong> Your collaboration makes the difference in personalised attention! 
+          <br /><br /><span className="italic text-base text-gray-600 mt-2 max-w-prose mx-auto" >Thank you for your understanding and cooperation.</span>
+          </p>
+        </div>
+
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Verify Access</CardTitle>
             <CardDescription>
               To access your booking details, please enter the email address used to make the reservation.
             </CardDescription>
@@ -220,7 +258,7 @@ function PreOrderContent() {
           <CardContent>
             <form onSubmit={handleEmailVerification} className="space-y-4">
               <div>
-                <Label htmlFor="email">Booking Email</Label>
+                <Label htmlFor="email" className="mb-2">Booking Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -325,42 +363,69 @@ function PreOrderContent() {
   // Show mode selection after email verification
   if (orderMode === null) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8">
-        <Card className="w-full max-w-lg">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 px-4">
+        <Card className="w-full max-w-2xl">
           <CardHeader>
-            <CardTitle>How would you like to place your pre-order?</CardTitle>
+            <CardTitle className="text-lg">How would you like to place your pre-order?</CardTitle>
             <CardDescription>
               Choose the option that best fits your situation.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <Button
-              onClick={() => setOrderMode('group')}
-              className="w-full h-20 p-4 text-sm font-medium bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-md shadow-sm transition-all duration-200"
-              variant="ghost"
-            >
-              <div className="text-center">
-                <div className="text-base font-semibold mb-1">Order for the whole group</div>
-                <div className="text-xs text-stone-600 leading-relaxed">
-                  One person places the order for everyone
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                onClick={() => setOrderMode('group')}
+                className="h-40 p-4 text-sm font-medium bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-md shadow-sm transition-all duration-200"
+                variant="ghost"
+              >
+                <div className="text-center">
+                  <div className="text-base font-semibold mb-1">Group pre-order</div>
+                  <div className="text-xs text-stone-600 whitespace-normal break-words">
+                    You decide and confirm the meals for the entire group.
+                  </div>
                 </div>
-              </div>
-            </Button>
+              </Button>
 
-            <Button
-              onClick={() => setOrderMode('individual')}
-              className="w-full h-20 p-4 text-sm font-medium hover:opacity-90 text-white border border-stone-300 rounded-md shadow-sm transition-all duration-200"
-              style={{ backgroundColor: 'hsl(222.2 47.4% 11.2%)' }}
-              variant="ghost"
-            >
-              <div className="text-center">
-                <div className="text-base font-semibold mb-1">Order for myself only</div>
-                <div className="text-xs text-white/80 leading-relaxed">
-                  Share the link or place your individual order
+              <Button
+                onClick={() => setOrderMode('individual')}
+                className="h-40 p-4 text-sm font-medium hover:opacity-90 text-white border border-stone-300 rounded-md shadow-sm transition-all duration-200"
+                style={{ backgroundColor: 'hsl(222.2 47.4% 11.2%)' }}
+                variant="ghost"
+              >
+                <div className="text-center">
+                  <div className="text-base font-semibold mb-1">Individual order</div>
+                  <div className="text-xs text-white/80 whitespace-normal break-words">
+                    Enter and select your own meal, then share the link with the other guests so they can do the same. 
+                    If you’ve received this link, please place your pre-order through this option.
+                  </div>
                 </div>
+              </Button>
+            </div>
+
+            <div className="mt-6 space-y-2">
+              <Label htmlFor="shareLink" className="block text-sm font-medium text-gray-700">
+                Shareable Link
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="shareLink"
+                  type="text"
+                  value={shareLink}
+                  readOnly
+                  className="flex-1"
+                />
+                <Button
+                  onClick={handleCopyLink}
+                  variant="outline"
+                  className="px-4 py-2"
+                >
+                  Copy
+                </Button>
               </div>
-            </Button>
+            </div>
           </CardContent>
+
+
         </Card>
       </div>
     );
