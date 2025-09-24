@@ -466,42 +466,39 @@ function PreOrderContent() {
         </div>
         <h1 className="text-2xl font-bold mb-6">Your Booking Details</h1>
 
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Booking Reference</label>
-            <p className="mt-1 text-lg">{booking.booking_reference}</p>
-          </div>
+        <Card className="mb-6">
+          <CardContent className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700">Booking Reference</label>
+              <p className="mt-1 text-sm">{booking.booking_reference}</p>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Customer Name</label>
-            <p className="mt-1 text-lg">{booking.customer_name}</p>
-          </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700">Customer Name</label>
+              <p className="mt-1 text-sm">{booking.customer_name}</p>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <p className="mt-1 text-lg">{booking.customer_email}</p>
-          </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700">Email</label>
+              <p className="mt-1 text-sm">{booking.customer_email}</p>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Telephone</label>
-            <p className="mt-1 text-lg">{booking.customer_mobile}</p>
-          </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700">Booking Date</label>
+              <p className="mt-1 text-sm">{booking.booking_date}</p>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Booking Date</label>
-            <p className="mt-1 text-lg">{booking.booking_date}</p>
-          </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700">Booking Time</label>
+              <p className="mt-1 text-sm">{booking.booking_time}</p>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Booking Time</label>
-            <p className="mt-1 text-lg">{booking.booking_time}</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Number of People</label>
-            <p className="mt-1 text-lg">{booking.number_of_people}</p>
-          </div>
-        </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700">Number of People</label>
+              <p className="mt-1 text-sm">{booking.number_of_people}</p>
+            </div>
+          </CardContent>
+        </Card>
 
         <form onSubmit={handleSubmit}>
           {orderMode === 'individual' && (
