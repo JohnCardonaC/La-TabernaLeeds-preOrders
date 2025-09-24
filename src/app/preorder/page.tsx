@@ -98,12 +98,7 @@ function PreOrderContent() {
         return;
       }
 
-      // Check if token is used (optional, depending on policy)
-      if (tokenData.used) {
-        setError('Access token has already been used');
-        setLoading(false);
-        return;
-      }
+
 
       // Transform data to match interface
       const bookingData = tokenData.bookings as unknown as {
@@ -362,11 +357,7 @@ function PreOrderContent() {
         return;
       }
 
-      // Mark token as used after successful submission
-      await supabase
-        .from('access_tokens')
-        .update({ used: true })
-        .eq('token', currentToken);
+
 
       // Redirect to thank you page
       window.location.href = '/thank-you';
@@ -537,6 +528,75 @@ function PreOrderContent() {
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">Menu</h2>
 
+            {/* Selected items summary */}
+            {Object.keys(quantities).some(id => (quantities[id] || 0) > 0) && (
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 className="text-lg font-semibold mb-3">Summary of your selection</h3>
+                <div className="space-y-2">
+                  {Object.entries(quantities)
+                    .filter(([, qty]) => qty > 0)
+                    .map(([id, qty]) => {
+                      const item = menuItems.find(m => m.id === id);
+                      return (
+                        <div key={id} className="flex justify-between items-center p-2 bg-white rounded border">
+                          <div className="flex-1">
+                            <p className="font-medium">{item?.name}</p>
+                            {item?.price && (
+                              <p className="text-sm text-gray-600">Price: ${(item.price * qty).toFixed(2)}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setQuantities(prev => ({
+                                ...prev,
+                                [id]: Math.max(0, (prev[id] || 0) - 1)
+                              }))}
+                            >
+                              -
+                            </Button>
+                            <span className="w-8 text-center font-medium">{qty}</span>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setQuantities(prev => ({
+                                ...prev,
+                                [id]: (prev[id] || 0) + 1
+                              }))}
+                            >
+                              +
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setQuantities(prev => ({
+                                ...prev,
+                                [id]: 0
+                              }))}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+                <div className="mt-4">
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Submitting Pre-Order...' : 'Submit Pre-Order'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {menuLoading ? (
               <p>Loading menu...</p>
             ) : (
@@ -556,24 +616,21 @@ function PreOrderContent() {
                                 <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                               )}
                             </div>
-                            <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
                               {item.price && (
                                 <p className="font-medium">${item.price.toFixed(2)}</p>
                               )}
-                              <div className="flex items-center space-x-2">
-                                <Label htmlFor={`quantity-${item.id}`} className="text-sm">Qty:</Label>
-                                <Input
-                                  id={`quantity-${item.id}`}
-                                  type="number"
-                                  min="0"
-                                  value={quantities[item.id] || 0}
-                                  onChange={(e) => setQuantities(prev => ({
-                                    ...prev,
-                                    [item.id]: parseInt(e.target.value) || 0
-                                  }))}
-                                  className="w-16"
-                                />
-                              </div>
+                              <Button
+                                type="button"
+                                onClick={() => setQuantities(prev => ({
+                                  ...prev,
+                                  [item.id]: (prev[item.id] || 0) + 1
+                                }))}
+                                variant="outline"
+                                size="sm"
+                              >
+                                Add
+                              </Button>
                             </div>
                           </div>
                         ))}
@@ -600,15 +657,7 @@ function PreOrderContent() {
             />
           </div>
 
-          <div className="mt-8">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={submitting}
-            >
-              {submitting ? 'Submitting Pre-Order...' : 'Submit Pre-Order'}
-            </Button>
-          </div>
+
         </form>
       </div>
     </div>
