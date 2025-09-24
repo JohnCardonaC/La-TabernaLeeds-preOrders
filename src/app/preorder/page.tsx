@@ -364,23 +364,38 @@ function PreOrderContent() {
   // Show mode selection after email verification
   if (orderMode === null) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 px-4">
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-8 px-4 space-y-8">
+        {/* Logo arriba */}
+        <div className="text-center mb-6">
+          <img
+            src="/images/logo-black.webp"
+            alt="La Taberna"
+            className="mx-auto h-30 w-auto"
+          />
+        </div>
+
+        {/* Card debajo */}
         <Card className="w-full max-w-2xl">
           <CardHeader>
-            <CardTitle className="text-lg">How would you like to place your pre-order?</CardTitle>
+            <CardTitle className="text-lg">
+              How would you like to place your pre-order?
+            </CardTitle>
             <CardDescription>
               Choose the option that best fits your situation.
             </CardDescription>
           </CardHeader>
+
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Button
                 onClick={() => setOrderMode('group')}
-                className="h-50 p-4 text-sm font-medium bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-md shadow-sm transition-all duration-200"
+                className="cursor-pointer h-50 p-4 text-sm font-medium bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-md shadow-sm transition-all duration-200"
                 variant="ghost"
               >
                 <div className="text-center">
-                  <div className="text-base font-semibold mb-1 text-xl">Group pre-order</div>
+                  <div className="text-base font-semibold mb-1 text-xl">
+                    Group pre-order
+                  </div>
                   <div className="mt-4 text-sm text-stone-600 whitespace-normal break-words">
                     You decide and confirm the meals for the entire group.
                   </div>
@@ -389,24 +404,28 @@ function PreOrderContent() {
 
               <Button
                 onClick={() => setOrderMode('individual')}
-                className="h-50 p-4 text-sm font-medium hover:opacity-90 text-white border border-stone-300 rounded-md shadow-sm transition-all duration-200"
+                className="cursor-pointer h-50 p-4 text-sm font-medium hover:opacity-90 text-white border border-stone-300 rounded-md shadow-sm transition-all duration-200"
                 style={{ backgroundColor: 'hsl(222.2 47.4% 11.2%)' }}
                 variant="ghost"
               >
                 <div className="text-center">
-                  <div className="text-base font-semibold mb-1 text-xl text-white/100">Individual order</div>
-                  <div className="mt-3 text-sm text-white/90 whitespace-normal break-words font-normal">
-                    Enter and select your own meal, then share the link with the other guests so they can do the same. 
-                    If you’ve received this link, please place your pre-order through this option.
+                  <div className="text-base font-semibold mb-1 text-xl text-white/100">
+                    Individual order
                   </div>
-
-                  
+                  <div className="mt-3 text-sm text-white/90 whitespace-normal break-words font-normal">
+                    Enter and select your own meal, then share the link with the
+                    other guests so they can do the same. If you’ve received this
+                    link, please place your pre-order through this option.
+                  </div>
                 </div>
               </Button>
             </div>
 
             <div className="mt-6 space-y-2">
-              <Label htmlFor="shareLink" className="block text-sm font-medium text-gray-700">
+              <Label
+                htmlFor="shareLink"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Pre-order Link
               </Label>
               <div className="flex gap-2">
@@ -427,8 +446,6 @@ function PreOrderContent() {
               </div>
             </div>
           </CardContent>
-
-
         </Card>
       </div>
     );
