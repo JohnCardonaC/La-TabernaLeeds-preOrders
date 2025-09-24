@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -192,9 +193,9 @@ function PreOrderContent() {
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareLink);
-      alert('Link copied to clipboard!');
+      toast.success('Link copied to clipboard!');
     } catch (err) {
-      alert('Failed to copy link. Please copy it manually.');
+      toast.error('Failed to copy link. Please copy it manually.');
     }
   };
 
@@ -375,12 +376,12 @@ function PreOrderContent() {
             <div className="grid grid-cols-2 gap-4">
               <Button
                 onClick={() => setOrderMode('group')}
-                className="h-40 p-4 text-sm font-medium bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-md shadow-sm transition-all duration-200"
+                className="h-50 p-4 text-sm font-medium bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-md shadow-sm transition-all duration-200"
                 variant="ghost"
               >
                 <div className="text-center">
-                  <div className="text-base font-semibold mb-1">Group pre-order</div>
-                  <div className="text-xs text-stone-600 whitespace-normal break-words">
+                  <div className="text-base font-semibold mb-1 text-xl">Group pre-order</div>
+                  <div className="mt-4 text-sm text-stone-600 whitespace-normal break-words">
                     You decide and confirm the meals for the entire group.
                   </div>
                 </div>
@@ -388,23 +389,25 @@ function PreOrderContent() {
 
               <Button
                 onClick={() => setOrderMode('individual')}
-                className="h-40 p-4 text-sm font-medium hover:opacity-90 text-white border border-stone-300 rounded-md shadow-sm transition-all duration-200"
+                className="h-50 p-4 text-sm font-medium hover:opacity-90 text-white border border-stone-300 rounded-md shadow-sm transition-all duration-200"
                 style={{ backgroundColor: 'hsl(222.2 47.4% 11.2%)' }}
                 variant="ghost"
               >
                 <div className="text-center">
-                  <div className="text-base font-semibold mb-1">Individual order</div>
-                  <div className="text-xs text-white/80 whitespace-normal break-words">
+                  <div className="text-base font-semibold mb-1 text-xl text-white/100">Individual order</div>
+                  <div className="mt-3 text-sm text-white/90 whitespace-normal break-words font-normal">
                     Enter and select your own meal, then share the link with the other guests so they can do the same. 
                     If you’ve received this link, please place your pre-order through this option.
                   </div>
+
+                  
                 </div>
               </Button>
             </div>
 
             <div className="mt-6 space-y-2">
               <Label htmlFor="shareLink" className="block text-sm font-medium text-gray-700">
-                Shareable Link
+                Pre-order Link
               </Label>
               <div className="flex gap-2">
                 <Input
