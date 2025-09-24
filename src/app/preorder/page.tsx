@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface Booking {
   id: string;
@@ -189,6 +190,22 @@ function PreOrderContent() {
     acc[category].push(item);
     return acc;
   }, {} as Record<string, MenuItem[]>);
+
+  // Custom order for categories (DB keys in English)
+  const categoryOrder = ['Starters', 'Vegetables', 'Meat', 'Fish'];
+  const categoryDisplayNames: Record<string, string> = {
+    'Starters': 'Entrantes',
+    'Vegetables': 'Vegetales',
+    'Meat': 'Carnes',
+    'Fish': 'Pescados',
+  };
+  const sortedCategories = Object.keys(groupedMenu).sort((a, b) => {
+    const indexA = categoryOrder.indexOf(a);
+    const indexB = categoryOrder.indexOf(b);
+    if (indexA === -1) return 1; // Unlisted categories at end
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
 
   const handleCopyLink = async () => {
     try {
@@ -523,44 +540,49 @@ function PreOrderContent() {
             {menuLoading ? (
               <p>Loading menu...</p>
             ) : (
-              <div className="space-y-6">
-                {Object.entries(groupedMenu).map(([category, items]) => (
-                  <div key={category}>
-                    <h3 className="text-lg font-medium text-gray-900 mb-3">{category}</h3>
-                    <div className="space-y-3">
-                      {items.map((item) => (
-                        <div key={item.id} className="flex justify-between items-center p-4 border rounded-lg">
-                          <div className="flex-1">
-                            <h4 className="font-medium">{item.name}</h4>
-                            {item.description && (
-                              <p className="text-sm text-gray-600 mt-1">{item.description}</p>
-                            )}
-                          </div>
-                          <div className="flex items-center space-x-4">
-                            {item.price && (
-                              <p className="font-medium">${item.price.toFixed(2)}</p>
-                            )}
-                            <div className="flex items-center space-x-2">
-                              <Label htmlFor={`quantity-${item.id}`} className="text-sm">Qty:</Label>
-                              <Input
-                                id={`quantity-${item.id}`}
-                                type="number"
-                                min="0"
-                                value={quantities[item.id] || 0}
-                                onChange={(e) => setQuantities(prev => ({
-                                  ...prev,
-                                  [item.id]: parseInt(e.target.value) || 0
-                                }))}
-                                className="w-16"
-                              />
+              <Accordion type="multiple" className="w-full">
+                {sortedCategories.map((category) => {
+                  const items = groupedMenu[category];
+                  return (
+                  <AccordionItem value={category} key={category}>
+                    <AccordionTrigger>{categoryDisplayNames[category] || category}</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3">
+                        {items.map((item) => (
+                          <div key={item.id} className="flex justify-between items-center p-4 border rounded-lg">
+                            <div className="flex-1">
+                              <h4 className="font-medium">{item.name}</h4>
+                              {item.description && (
+                                <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-4">
+                              {item.price && (
+                                <p className="font-medium">${item.price.toFixed(2)}</p>
+                              )}
+                              <div className="flex items-center space-x-2">
+                                <Label htmlFor={`quantity-${item.id}`} className="text-sm">Qty:</Label>
+                                <Input
+                                  id={`quantity-${item.id}`}
+                                  type="number"
+                                  min="0"
+                                  value={quantities[item.id] || 0}
+                                  onChange={(e) => setQuantities(prev => ({
+                                    ...prev,
+                                    [item.id]: parseInt(e.target.value) || 0
+                                  }))}
+                                  className="w-16"
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                  );
+                })}
+              </Accordion>
             )}
           </div>
 
