@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,8 +32,9 @@ export default function LoginPage() {
 
     if (error) {
       console.error('Error logging in:', error.message);
-      // Aquí podrías mostrar un mensaje de error al usuario
+      toast.error('Invalid email or password. Please try again.');
     } else {
+      toast.success('Login successful!');
       router.push('/'); // Redirige al dashboard si el login es exitoso
     }
   };
@@ -47,7 +49,7 @@ export default function LoginPage() {
           height={120}
           className="mx-auto"
         />
-        <Card className="mx-auto max-w-sm">
+        <Card className="mx-auto w-md">
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
