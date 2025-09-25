@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Booking {
   id: string;
@@ -52,6 +53,8 @@ function PreOrderContent() {
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [shareLink, setShareLink] = useState('');
   const [bottomSheetOpen, setBottomSheetOpen] = useState(true);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmOrderName, setConfirmOrderName] = useState('');
 
   useEffect(() => {
     if (!token) {
@@ -292,9 +295,13 @@ function PreOrderContent() {
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleConfirmSubmit = async () => {
     if (!booking) return;
+
+    if (orderMode === 'individual' && !confirmOrderName.trim()) {
+      alert('Please enter your name.');
+      return;
+    }
 
     const selectedItems = Object.entries(quantities).filter(([, qty]) => qty > 0);
     if (selectedItems.length === 0) {
@@ -307,7 +314,7 @@ function PreOrderContent() {
     try {
       const supabase = createClient();
 
-      const preOrderName = orderMode === 'individual' ? orderName : booking.customer_name;
+      const preOrderName = orderMode === 'individual' ? confirmOrderName : booking.customer_name;
 
       const { data: preOrderData, error: preOrderError } = await supabase
         .from('pre_orders')
@@ -323,6 +330,7 @@ function PreOrderContent() {
         console.error('Error creating pre-order:', preOrderError);
         alert('Error submitting pre-order. Please try again.');
         setSubmitting(false);
+        setShowConfirmModal(false);
         return;
       }
 
@@ -340,16 +348,25 @@ function PreOrderContent() {
         console.error('Error creating pre-order items:', itemsError);
         alert('Error submitting pre-order items. Please try again.');
         setSubmitting(false);
+        setShowConfirmModal(false);
         return;
       }
 
+      setShowConfirmModal(false);
       window.location.href = '/thank-you';
 
     } catch (error) {
       console.error('Error submitting pre-order:', error);
       alert('Error submitting pre-order. Please try again.');
       setSubmitting(false);
+      setShowConfirmModal(false);
     }
+  };
+
+  const switchOrderMode = () => {
+    setOrderMode(orderMode === 'group' ? 'individual' : 'group');
+    setConfirmOrderName('');
+    setShowConfirmModal(false);
   };
 
   if (orderMode === null) {
@@ -491,22 +508,7 @@ function PreOrderContent() {
               </div>
 
 
-              <form onSubmit={handleSubmit}>
-                {orderMode === 'individual' && (
-                  <div className="mt-8">
-                    <Label htmlFor="orderName" className="block text-sm font-medium text-gray-700 mb-2">
-                      Your Name
-                    </Label>
-                    <Input
-                      id="orderName"
-                      type="text"
-                      value={orderName}
-                      onChange={(e) => setOrderName(e.target.value)}
-                      placeholder="Enter your name"
-                      required
-                    />
-                  </div>
-                )}
+              <form>
                 <div className="mt-8">
                   <div className="w-full bg-gray-900 py-1 px-3 rounded-t-lg mb-1">
                     <h2 className="text-xl font-semibold mb-4 text-white">Menu</h2>
@@ -661,7 +663,7 @@ function PreOrderContent() {
                 <div className="mt-3">
                   <Button
                     type="button"
-                    onClick={handleSubmit}
+                    onClick={() => setShowConfirmModal(true)}
                     className="w-full text-sm"
                     disabled={submitting}
                   >
@@ -744,7 +746,7 @@ function PreOrderContent() {
                   </div>
                   <Button
                     type="button"
-                    onClick={handleSubmit}
+                    onClick={() => setShowConfirmModal(true)}
                     className="w-full mt-4"
                     disabled={submitting}
                   >
@@ -756,6 +758,91 @@ function PreOrderContent() {
           </div>
         </div>
       </div>
+
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Pre-Order</DialogTitle>
+            <DialogDescription>
+              <div className="bg-green-50 border border-green-200 rounded-md p-3 text-green-800 text-sm font-medium">
+                {orderMode === 'group'
+                  ? 'You are placing the pre-order for the entire group'
+                  : 'You are placing an individual pre-order'
+                }
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                {orderMode === 'group'
+                  ? 'If you want to place an individual order instead, '
+                  : 'If you want to order for the entire group instead, '
+                }
+                <button
+                  onClick={switchOrderMode}
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  click here
+                </button>
+                .
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {orderMode === 'group' && (
+              <div className="text-sm">
+                <p><strong>Orderer Name:</strong> {booking.customer_name}</p>
+              </div>
+            )}
+
+            {orderMode === 'individual' && (
+              <div>
+                <Label htmlFor="confirmOrderName" className="block text-sm font-medium mb-2">
+                  Person's Name
+                </Label>
+                <Input
+                  id="confirmOrderName"
+                  type="text"
+                  value={confirmOrderName}
+                  onChange={(e) => setConfirmOrderName(e.target.value)}
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Order Summary</label>
+              <div className="space-y-1 text-sm">
+                {Object.entries(quantities)
+                  .filter(([, qty]) => qty > 0)
+                  .map(([id, qty]) => {
+                    const item = menuItems.find(m => m.id === id);
+                    return (
+                      <div key={id} className="flex items-center">
+                        <span className="flex-1">{item?.name}</span>
+                        <span className="flex-1 border-b border-dotted border-gray-400 mx-2"></span>
+                        <span className="font-medium">{qty}</span>
+                      </div>
+                    );
+                  })}
+                <div className="flex items-center">
+                  <span className="flex-1 font-medium text-right pr-2 pt-2">Total Items</span>
+                  <span className="flex-1 border-b border-dotted border-gray-400 mx-2"></span>
+                  <span className="font-medium">{Object.values(quantities).reduce((sum, qty) => sum + qty, 0)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmSubmit} disabled={submitting}>
+              {submitting ? 'Confirming...' : 'Confirm'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
