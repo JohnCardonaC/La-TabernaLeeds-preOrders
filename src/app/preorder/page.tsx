@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -235,10 +236,12 @@ function PreOrderContent() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-8 px-4 space-y-8">
         <div className="text-center space-y-4">
-          <img
-            src="/images/logo-black.webp"
+          <Image
+            src="https://res.cloudinary.com/dycdigital/image/upload/v1758807509/logo-black_fgjop4.png"
             alt="La Taberna"
-            className="mx-auto h-30 w-auto"
+            width={120}
+            height={120}
+            className="mx-auto"
           />
           <h1 className="text-2xl font-semibold text-gray-900">Hi, {firstName}!</h1>
           <p className="text-sm text-gray-600 mt-2 max-w-prose mx-auto">
@@ -351,15 +354,7 @@ function PreOrderContent() {
 
   if (orderMode === null) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-8 px-4 space-y-8">
-        <div className="text-center mb-6">
-          <img
-            src="/images/logo-black.webp"
-            alt="La Taberna"
-            className="mx-auto h-30 w-auto"
-          />
-        </div>
-
+      <div className="min-h-screen bg-gray-50 flex flex-col md:items-center md:justify-center pt-12 md:pt-0 py-8 px-4 space-y-8">
         <Card className="w-full max-w-2xl">
           <CardHeader>
             <CardTitle className="text-lg">
@@ -374,12 +369,12 @@ function PreOrderContent() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Button
                 onClick={() => setOrderMode('group')}
-                className="cursor-pointer h-50 p-4 text-sm font-medium bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-md shadow-sm transition-all duration-200"
+                className="cursor-pointer h-45 md:h-50  p-4 text-sm font-medium bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-md shadow-sm transition-all duration-200"
                 variant="ghost"
               >
                 <div className="text-center">
                   <div className="text-base font-semibold mb-1 text-xl">
-                    Group pre-order
+                    Click here to Group pre-order
                   </div>
                   <div className="mt-4 text-sm text-stone-600 whitespace-normal break-words">
                     You decide and confirm the meals for the entire group.
@@ -389,13 +384,13 @@ function PreOrderContent() {
 
               <Button
                 onClick={() => setOrderMode('individual')}
-                className="cursor-pointer h-50 p-4 text-sm font-medium hover:opacity-90 text-white border border-stone-300 rounded-md shadow-sm transition-all duration-200"
+                className="cursor-pointer h-45 md:h-50 p-4 text-sm font-medium hover:opacity-90 text-white border border-stone-300 rounded-md shadow-sm transition-all duration-200"
                 style={{ backgroundColor: 'hsl(222.2 47.4% 11.2%)' }}
                 variant="ghost"
               >
                 <div className="text-center">
                   <div className="text-base font-semibold mb-1 text-xl text-white/100">
-                    Individual order
+                     Click here to Individual order
                   </div>
                   <div className="mt-3 text-sm text-white/90 whitespace-normal break-words font-normal">
                     Enter and select your own meal, then share the link with the
@@ -411,7 +406,7 @@ function PreOrderContent() {
                 htmlFor="shareLink"
                 className="block text-sm font-medium text-gray-700"
               >
-                Pre-order Link
+                Pre-order Link to Share
               </Label>
               <div className="flex gap-2">
                 <Input
