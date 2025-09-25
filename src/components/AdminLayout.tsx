@@ -13,6 +13,15 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { useIdleTimeout } from '@/lib/useIdleTimeout';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { useState } from 'react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -21,6 +30,7 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children, currentPage }: AdminLayoutProps) {
   const router = useRouter();
+  const [showIdleModal, setShowIdleModal] = useState(false);
 
   const performSignOut = async () => {
     const supabase = createClient();
@@ -32,7 +42,7 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
       return;
     }
 
-    toast.success('Signed out due to inactivity');
+    toast.success('Signed out successfully');
     router.push('/login');
   };
 
@@ -40,8 +50,12 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
     await performSignOut();
   };
 
-  // Idle timeout: 1 minute for testing
-  useIdleTimeout(60000, performSignOut);
+  const handleIdleTimeout = () => {
+    setShowIdleModal(true);
+  };
+
+  // Idle timeout: 30 minutes
+  useIdleTimeout(1800000, handleIdleTimeout);
 
   const navItems = [
     { href: '/', label: 'Dashboard', icon: Home, key: 'dashboard' },
@@ -104,6 +118,23 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
           {children}
         </main>
       </div>
+
+      {/* Idle Timeout Modal */}
+      <Dialog open={showIdleModal} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Session Expired</DialogTitle>
+            <DialogDescription>
+              Your session has expired due to inactivity. Please log in again.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={performSignOut}>
+              Accept
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
