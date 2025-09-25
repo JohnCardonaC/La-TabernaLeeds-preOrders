@@ -515,7 +515,7 @@ function PreOrderContent() {
                   {menuLoading ? (
                     <p>Loading menu...</p>
                   ) : (
-                    <Accordion type="multiple" className="w-full">
+                    <Accordion type="single" collapsible className="w-full">
                       {sortedCategories.map((category) => {
                         const items = groupedMenu[category];
                         return (
