@@ -20,11 +20,13 @@ import { Label } from "@/components/ui/label";
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -33,6 +35,7 @@ export default function LoginPage() {
     if (error) {
       console.error('Error logging in:', error.message);
       toast.error('Invalid email or password. Please try again.');
+      setLoading(false);
     } else {
       toast.success('Login successful!');
       router.push('/'); // Redirige al dashboard si el login es exitoso
@@ -82,8 +85,8 @@ export default function LoginPage() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                 />
               </div>
-              <Button type="submit" className="w-full">
-                Login
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Logging in...' : 'Login'}
               </Button>
             </div>
           </form>
