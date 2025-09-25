@@ -411,7 +411,7 @@ function PreOrderContent() {
                   </div>
                   <div className="mt-3 text-sm text-white/90 whitespace-normal break-words font-normal">
                     Enter and select your own meal, then share the link with the
-                    other guests so they can do the same. If you've received this
+                    other guests so they can do the same. If you&apos;ve received this
                     link, please place your pre-order through this option.
                   </div>
                 </div>
@@ -796,7 +796,7 @@ function PreOrderContent() {
             {orderMode === 'individual' && (
               <div>
                 <Label htmlFor="confirmOrderName" className="block text-sm font-medium mb-2">
-                  Person's Name
+                  Person&apos;s Name
                 </Label>
                 <Input
                   id="confirmOrderName"
