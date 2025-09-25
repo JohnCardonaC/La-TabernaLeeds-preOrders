@@ -10,6 +10,8 @@ import {
   ClipboardList,
   LogOut
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -20,8 +22,16 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
   const router = useRouter();
 
   const handleSignOut = async () => {
-    // Assuming supabase client is available, but since it's client component, need to import
-    // For now, just redirect
+    const supabase = createClient();
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error('Error signing out:', error.message);
+      toast.error('Error signing out. Please try again.');
+      return;
+    }
+
+    toast.success('Signed out successfully');
     router.push('/login');
   };
 
