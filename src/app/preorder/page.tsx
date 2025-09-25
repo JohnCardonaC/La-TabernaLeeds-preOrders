@@ -44,13 +44,14 @@ function PreOrderContent() {
   const [verifyingEmail, setVerifyingEmail] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [tempQuantities, setTempQuantities] = useState<Record<string, number>>({});
   const [customerNotes, setCustomerNotes] = useState('');
   const [orderName, setOrderName] = useState('');
   const [orderMode, setOrderMode] = useState<'individual' | 'group' | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [shareLink, setShareLink] = useState('');
-  const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
+  const [bottomSheetOpen, setBottomSheetOpen] = useState(true);
 
   useEffect(() => {
     if (!token) {
@@ -312,7 +313,6 @@ function PreOrderContent() {
         .from('pre_orders')
         .insert({
           booking_id: booking.id,
-          customer_notes: customerNotes,
           name: preOrderName,
           order_mode: orderMode
         })
@@ -394,7 +394,7 @@ function PreOrderContent() {
                   </div>
                   <div className="mt-3 text-sm text-white/90 whitespace-normal break-words font-normal">
                     Enter and select your own meal, then share the link with the
-                    other guests so they can do the same. If you’ve received this
+                    other guests so they can do the same. If you've received this
                     link, please place your pre-order through this option.
                   </div>
                 </div>
@@ -432,10 +432,10 @@ function PreOrderContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen pb-30 bg-gray-50 py-8">
+      <div className="md:max-w-4xl md:mx-auto px-4">
         <div className={`flex flex-col lg:flex-row gap-6 ${Object.keys(quantities).some(id => (quantities[id] || 0) > 0) ? "lg:justify-center" : "justify-center"}`}>
-          <div className="max-w-2xl w-full lg:flex-shrink-0">
+          <div className="md:max-w-2xl w-full md:flex-shrink-0">
             <div className="bg-white rounded-lg shadow-md p-8">
               <div className="mb-4">
                 <Button
@@ -443,13 +443,21 @@ function PreOrderContent() {
                   variant="ghost"
                   className="text-stone-600 hover:text-stone-800 p-0 h-auto font-normal"
                 >
-                  ← Back to order type selection
+                  <span className="text-xl px-2 pb-1 bg-gray-800 text-white rounded-full">←</span> Back to order type selection
                 </Button>
               </div>
-              <h1 className="text-2xl font-bold mb-6">Your Booking Details</h1>
+               <Image
+                src="https://res.cloudinary.com/dycdigital/image/upload/v1758807509/logo-black_fgjop4.png"
+                alt="La Taberna"
+                width={80}
+                height={80}
+                className="mx-auto"
+              />
+              <h1 className="text-2xl font-bold my-6">Your Booking Details</h1>
+             
 
-              <Card className="mb-6">
-                <CardContent className="grid grid-cols-2 gap-4">
+              <div className="w-full mb-6 md:rounded-2xl md:shadow md:bg-white border-b pb-6  md:border-b-0">
+                <div className="grid grid-cols-2 gap-4 p-0 md:p-4">
                   <div>
                     <label className="block text-xs font-medium text-gray-700">Booking Reference</label>
                     <p className="mt-1 text-sm">{booking.booking_reference}</p>
@@ -479,8 +487,9 @@ function PreOrderContent() {
                     <label className="block text-xs font-medium text-gray-700">Number of People</label>
                     <p className="mt-1 text-sm">{booking.number_of_people}</p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+
 
               <form onSubmit={handleSubmit}>
                 {orderMode === 'individual' && (
@@ -498,9 +507,10 @@ function PreOrderContent() {
                     />
                   </div>
                 )}
-
                 <div className="mt-8">
-                  <h2 className="text-xl font-semibold mb-4">Menu</h2>
+                  <div className="w-full bg-gray-900 py-1 px-3 rounded-t-lg mb-1">
+                    <h2 className="text-xl font-semibold mb-4 text-white">Menu</h2>
+                  </div>    
 
                   {menuLoading ? (
                     <p>Loading menu...</p>
@@ -520,19 +530,54 @@ function PreOrderContent() {
                                     {item.description && (
                                       <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                                     )}
-                                  </div>
-                                  <div className="flex items-center space-x-2">
                                     {item.price && (
-                                      <p className="font-medium">${item.price.toFixed(2)}</p>
+                                      <p className="font-medium mt-1">${item.price.toFixed(2)}</p>
                                     )}
+                                  </div>
+                                  <div className="flex items-center space-x-1 ml-4">
                                     <Button
                                       type="button"
-                                      onClick={() => setQuantities(prev => ({
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 w-8 p-0"
+                                      onClick={() => setTempQuantities(prev => ({
+                                        ...prev,
+                                        [item.id]: Math.max(0, (prev[item.id] || 0) - 1)
+                                      }))}
+                                    >
+                                      -
+                                    </Button>
+                                    <span className="w-8 text-center font-medium text-sm">{tempQuantities[item.id] || 0}</span>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 w-8 p-0"
+                                      onClick={() => setTempQuantities(prev => ({
                                         ...prev,
                                         [item.id]: (prev[item.id] || 0) + 1
                                       }))}
+                                    >
+                                      +
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      onClick={() => {
+                                        const qty = tempQuantities[item.id] || 0;
+                                        if (qty > 0) {
+                                          setQuantities(prev => ({
+                                            ...prev,
+                                            [item.id]: (prev[item.id] || 0) + qty
+                                          }));
+                                          setTempQuantities(prev => ({
+                                            ...prev,
+                                            [item.id]: 0
+                                          }));
+                                        }
+                                      }}
                                       variant="outline"
                                       size="sm"
+                                      className="ml-2"
                                     >
                                       Add
                                     </Button>
@@ -548,19 +593,7 @@ function PreOrderContent() {
                   )}
                 </div>
 
-                <div className="mt-8">
-                  <Label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-                    Additional Notes (Optional)
-                  </Label>
-                  <textarea
-                    id="notes"
-                    value={customerNotes}
-                    onChange={(e) => setCustomerNotes(e.target.value)}
-                    placeholder="Any special requests or dietary requirements..."
-                    className="w-full p-3 border rounded-lg resize-none"
-                    rows={3}
-                  />
-                </div>
+
               </form>
             </div>
           </div>
@@ -650,7 +683,7 @@ function PreOrderContent() {
           >
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Order Summary</span>
-              <span className="text-lg">{bottomSheetOpen ? '↓' : '↑'}</span>
+              <span className="text-2xl px-5 bg-gray-600 text-white rounded-full p-1">{bottomSheetOpen ? '↓' : '↑'}</span>
             </div>
           </div>
           <div
