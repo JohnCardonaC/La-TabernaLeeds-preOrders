@@ -49,6 +49,7 @@ function PreOrderContent() {
   const [submitting, setSubmitting] = useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [shareLink, setShareLink] = useState('');
+  const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -60,7 +61,6 @@ function PreOrderContent() {
     const fetchBooking = async () => {
       const supabase = createClient();
 
-      // First, validate the token
       const { data: tokenData, error: tokenError } = await supabase
         .from('access_tokens')
         .select(`
@@ -89,7 +89,6 @@ function PreOrderContent() {
         return;
       }
 
-      // Check if token is expired
       const now = new Date();
       const expiresAt = new Date(tokenData.expires_at);
       if (now > expiresAt) {
@@ -98,9 +97,6 @@ function PreOrderContent() {
         return;
       }
 
-
-
-      // Transform data to match interface
       const bookingData = tokenData.bookings as unknown as {
         id: string;
         booking_reference: string;
@@ -142,7 +138,6 @@ function PreOrderContent() {
     setVerifyingEmail(true);
     setEmailError(null);
 
-    // Check if the entered email matches the booking's customer email
     if (emailInput.trim().toLowerCase() === booking.customer_email.toLowerCase()) {
       setEmailVerified(true);
     } else {
@@ -186,7 +181,6 @@ function PreOrderContent() {
     return acc;
   }, {} as Record<string, MenuItem[]>);
 
-  // Custom order for categories (DB keys in English)
   const categoryOrder = ['Starters', 'Vegetables', 'Meat', 'Fish'];
   const categoryDisplayNames: Record<string, string> = {
     'Starters': 'Entrantes',
@@ -197,7 +191,7 @@ function PreOrderContent() {
   const sortedCategories = Object.keys(groupedMenu).sort((a, b) => {
     const indexA = categoryOrder.indexOf(a);
     const indexB = categoryOrder.indexOf(b);
-    if (indexA === -1) return 1; // Unlisted categories at end
+    if (indexA === -1) return 1;
     if (indexB === -1) return -1;
     return indexA - indexB;
   });
@@ -213,35 +207,28 @@ function PreOrderContent() {
 
   if (loading) {
     return (
-      <>
-        <div className="min-h-screen flex items-center justify-center">
-          <p>Loading...</p>
-        </div>
-      </>
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <>
-        <div className="min-h-screen flex items-center justify-center">
-          <p className="text-red-500">{error}</p>
-        </div>
-      </>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-500">{error}</p>
+      </div>
     );
   }
 
   if (!booking) {
     return (
-      <>
-        <div className="min-h-screen flex items-center justify-center">
-          <p>No booking data</p>
-        </div>
-      </>
+      <div className="min-h-screen flex items-center justify-center">
+        <p>No booking data</p>
+      </div>
     );
   }
 
-  // Show email verification form
   if (!emailVerified) {
     const firstName = booking.customer_name.split(' ')[0];
 
@@ -257,7 +244,7 @@ function PreOrderContent() {
           <p className="text-sm text-gray-600 mt-2 max-w-prose mx-auto">
             To optimise the service for a group like yours, we use this pre-order system. <br />
             <br />
-           By confirming your order in advance, we facilitate preparation in the kitchen, reduce waiting time and ensure<strong> that everything goes perfectly on the day of your visit.</strong> Your collaboration makes the difference in personalised attention! 
+           By confirming your order in advance, we facilitate preparation in the kitchen, reduce waiting time and ensure<strong> that everything goes perfectly on the day of your visit.</strong> Your collaboration makes the difference in personalised attention!
           <br /><br /><span className="italic text-base text-gray-600 mt-2 max-w-prose mx-auto" >Thank you for your understanding and cooperation.</span>
           </p>
         </div>
@@ -305,7 +292,6 @@ function PreOrderContent() {
     e.preventDefault();
     if (!booking) return;
 
-    // Check if at least one item is selected
     const selectedItems = Object.entries(quantities).filter(([, qty]) => qty > 0);
     if (selectedItems.length === 0) {
       alert('Please select at least one item from the menu.');
@@ -317,10 +303,8 @@ function PreOrderContent() {
     try {
       const supabase = createClient();
 
-      // Determine the name for the pre-order
       const preOrderName = orderMode === 'individual' ? orderName : booking.customer_name;
 
-      // Create pre_order record
       const { data: preOrderData, error: preOrderError } = await supabase
         .from('pre_orders')
         .insert({
@@ -339,9 +323,8 @@ function PreOrderContent() {
         return;
       }
 
-      // Create pre_order_items for selected items
       const preOrderItems = selectedItems.map(([menuItemId, quantity]) => ({
-        attendee_id: null, // For now, not using attendees
+        attendee_id: null,
         menu_item_id: menuItemId,
         quantity
       }));
@@ -357,9 +340,6 @@ function PreOrderContent() {
         return;
       }
 
-
-
-      // Redirect to thank you page
       window.location.href = '/thank-you';
 
     } catch (error) {
@@ -369,11 +349,9 @@ function PreOrderContent() {
     }
   };
 
-  // Show mode selection after email verification
   if (orderMode === null) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-8 px-4 space-y-8">
-        {/* Logo arriba */}
         <div className="text-center mb-6">
           <img
             src="/images/logo-black.webp"
@@ -382,7 +360,6 @@ function PreOrderContent() {
           />
         </div>
 
-        {/* Card debajo */}
         <Card className="w-full max-w-2xl">
           <CardHeader>
             <CardTitle className="text-lg">
@@ -459,80 +436,145 @@ function PreOrderContent() {
     );
   }
 
-  // Show booking details after mode selection
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
-        <div className="mb-4">
-          <Button
-            onClick={() => setOrderMode(null)}
-            variant="ghost"
-            className="text-stone-600 hover:text-stone-800 p-0 h-auto font-normal"
-          >
-            ← Back to order type selection
-          </Button>
-        </div>
-        <h1 className="text-2xl font-bold mb-6">Your Booking Details</h1>
+      <div className="max-w-4xl mx-auto px-4">
+        <div className={`flex flex-col lg:flex-row gap-6 ${Object.keys(quantities).some(id => (quantities[id] || 0) > 0) ? "lg:justify-center" : "justify-center"}`}>
+          <div className="max-w-2xl w-full lg:flex-shrink-0">
+            <div className="bg-white rounded-lg shadow-md p-8">
+              <div className="mb-4">
+                <Button
+                  onClick={() => setOrderMode(null)}
+                  variant="ghost"
+                  className="text-stone-600 hover:text-stone-800 p-0 h-auto font-normal"
+                >
+                  ← Back to order type selection
+                </Button>
+              </div>
+              <h1 className="text-2xl font-bold mb-6">Your Booking Details</h1>
 
-        <Card className="mb-6">
-          <CardContent className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-700">Booking Reference</label>
-              <p className="mt-1 text-sm">{booking.booking_reference}</p>
+              <Card className="mb-6">
+                <CardContent className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700">Booking Reference</label>
+                    <p className="mt-1 text-sm">{booking.booking_reference}</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700">Customer Name</label>
+                    <p className="mt-1 text-sm">{booking.customer_name}</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700">Email</label>
+                    <p className="mt-1 text-sm">{booking.customer_email}</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700">Booking Date</label>
+                    <p className="mt-1 text-sm">{booking.booking_date}</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700">Booking Time</label>
+                    <p className="mt-1 text-sm">{booking.booking_time}</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700">Number of People</label>
+                    <p className="mt-1 text-sm">{booking.number_of_people}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <form onSubmit={handleSubmit}>
+                {orderMode === 'individual' && (
+                  <div className="mt-8">
+                    <Label htmlFor="orderName" className="block text-sm font-medium text-gray-700 mb-2">
+                      Your Name
+                    </Label>
+                    <Input
+                      id="orderName"
+                      type="text"
+                      value={orderName}
+                      onChange={(e) => setOrderName(e.target.value)}
+                      placeholder="Enter your name"
+                      required
+                    />
+                  </div>
+                )}
+
+                <div className="mt-8">
+                  <h2 className="text-xl font-semibold mb-4">Menu</h2>
+
+                  {menuLoading ? (
+                    <p>Loading menu...</p>
+                  ) : (
+                    <Accordion type="multiple" className="w-full">
+                      {sortedCategories.map((category) => {
+                        const items = groupedMenu[category];
+                        return (
+                        <AccordionItem value={category} key={category}>
+                          <AccordionTrigger>{categoryDisplayNames[category] || category}</AccordionTrigger>
+                          <AccordionContent>
+                            <div className="space-y-3">
+                              {items.map((item) => (
+                                <div key={item.id} className="flex justify-between items-center p-4 border rounded-lg">
+                                  <div className="flex-1">
+                                    <h4 className="font-medium">{item.name}</h4>
+                                    {item.description && (
+                                      <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    {item.price && (
+                                      <p className="font-medium">${item.price.toFixed(2)}</p>
+                                    )}
+                                    <Button
+                                      type="button"
+                                      onClick={() => setQuantities(prev => ({
+                                        ...prev,
+                                        [item.id]: (prev[item.id] || 0) + 1
+                                      }))}
+                                      variant="outline"
+                                      size="sm"
+                                    >
+                                      Add
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                  )}
+                </div>
+
+                <div className="mt-8">
+                  <Label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+                    Additional Notes (Optional)
+                  </Label>
+                  <textarea
+                    id="notes"
+                    value={customerNotes}
+                    onChange={(e) => setCustomerNotes(e.target.value)}
+                    placeholder="Any special requests or dietary requirements..."
+                    className="w-full p-3 border rounded-lg resize-none"
+                    rows={3}
+                  />
+                </div>
+              </form>
             </div>
+          </div>
 
-            <div>
-              <label className="block text-xs font-medium text-gray-700">Customer Name</label>
-              <p className="mt-1 text-sm">{booking.customer_name}</p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700">Email</label>
-              <p className="mt-1 text-sm">{booking.customer_email}</p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700">Booking Date</label>
-              <p className="mt-1 text-sm">{booking.booking_date}</p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700">Booking Time</label>
-              <p className="mt-1 text-sm">{booking.booking_time}</p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700">Number of People</label>
-              <p className="mt-1 text-sm">{booking.number_of_people}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <form onSubmit={handleSubmit}>
-          {orderMode === 'individual' && (
-            <div className="mt-8">
-              <Label htmlFor="orderName" className="block text-sm font-medium text-gray-700 mb-2">
-                Your Name
-              </Label>
-              <Input
-                id="orderName"
-                type="text"
-                value={orderName}
-                onChange={(e) => setOrderName(e.target.value)}
-                placeholder="Enter your name"
-                required
-              />
-            </div>
-          )}
-
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">Menu</h2>
-
-            {/* Selected items summary */}
-            {Object.keys(quantities).some(id => (quantities[id] || 0) > 0) && (
-              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3">Summary of your selection</h3>
-                <div className="space-y-2">
+          {Object.keys(quantities).some(id => (quantities[id] || 0) > 0) && (
+            <div className="hidden lg:block w-80 flex-shrink-0">
+            <div className="lg:sticky lg:top-8 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 className="text-base font-semibold mb-2">Summary of your selection</h3>
+                <div className="space-y-1">
                   {Object.entries(quantities)
                     .filter(([, qty]) => qty > 0)
                     .map(([id, qty]) => {
@@ -540,16 +582,17 @@ function PreOrderContent() {
                       return (
                         <div key={id} className="flex justify-between items-center p-2 bg-white rounded border">
                           <div className="flex-1">
-                            <p className="font-medium">{item?.name}</p>
+                            <p className="font-normal text-xs">{item?.name}</p>
                             {item?.price && (
-                              <p className="text-sm text-gray-600">Price: ${(item.price * qty).toFixed(2)}</p>
+                              <p className="text-xs text-gray-600">${(item.price * qty).toFixed(2)}</p>
                             )}
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1 ml-2">
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
+                              className="h-6 w-6 p-0"
                               onClick={() => setQuantities(prev => ({
                                 ...prev,
                                 [id]: Math.max(0, (prev[id] || 0) - 1)
@@ -557,11 +600,12 @@ function PreOrderContent() {
                             >
                               -
                             </Button>
-                            <span className="w-8 text-center font-medium">{qty}</span>
+                            <span className="w-4 text-center font-medium text-xs">{qty}</span>
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
+                              className="h-6 w-6 p-0"
                               onClick={() => setQuantities(prev => ({
                                 ...prev,
                                 [id]: (prev[id] || 0) + 1
@@ -573,92 +617,116 @@ function PreOrderContent() {
                               type="button"
                               variant="outline"
                               size="sm"
+                              className="h-6 w-6 p-0"
                               onClick={() => setQuantities(prev => ({
                                 ...prev,
                                 [id]: 0
                               }))}
                             >
-                              Remove
+                              X
                             </Button>
                           </div>
                         </div>
                       );
                     })}
                 </div>
-                <div className="mt-4">
+                <div className="mt-3">
                   <Button
-                    type="submit"
-                    className="w-full"
+                    type="button"
+                    onClick={handleSubmit}
+                    className="w-full text-sm"
                     disabled={submitting}
                   >
                     {submitting ? 'Submitting Pre-Order...' : 'Submit Pre-Order'}
                   </Button>
                 </div>
               </div>
-            )}
+            </div>
+          )}
+        </div>
+      </div>
 
-            {menuLoading ? (
-              <p>Loading menu...</p>
-            ) : (
-              <Accordion type="multiple" className="w-full">
-                {sortedCategories.map((category) => {
-                  const items = groupedMenu[category];
-                  return (
-                  <AccordionItem value={category} key={category}>
-                    <AccordionTrigger>{categoryDisplayNames[category] || category}</AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-3">
-                        {items.map((item) => (
-                          <div key={item.id} className="flex justify-between items-center p-4 border rounded-lg">
+      {/* Mobile Bottom Sheet */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto lg:hidden">
+        <div className="bg-white border-t rounded-t-lg shadow-lg">
+          <div
+            className="p-3 cursor-pointer bg-gray-100 border-b"
+            onClick={() => setBottomSheetOpen(!bottomSheetOpen)}
+          >
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Order Summary</span>
+              <span className="text-lg">{bottomSheetOpen ? '↓' : '↑'}</span>
+            </div>
+          </div>
+          <div
+            className={`overflow-hidden transition-all duration-300 ${
+              bottomSheetOpen ? 'max-h-96' : 'max-h-0'
+            }`}
+          >
+            <div className="p-4">
+              {Object.keys(quantities).filter(id => quantities[id] > 0).length === 0 ? (
+                <div className="text-center text-gray-500 py-4 text-sm">
+                  Your order is empty
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    {Object.entries(quantities)
+                      .filter(([, qty]) => qty > 0)
+                      .map(([id, qty]) => {
+                        const item = menuItems.find(m => m.id === id);
+                        return (
+                          <div key={id} className="flex justify-between items-center py-2 border-b">
                             <div className="flex-1">
-                              <h4 className="font-medium">{item.name}</h4>
-                              {item.description && (
-                                <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                              <p className="text-sm font-medium">{item?.name}</p>
+                              {item?.price && (
+                                <p className="text-xs text-gray-600">${(item.price * qty).toFixed(2)}</p>
                               )}
                             </div>
-                            <div className="flex items-center space-x-2">
-                              {item.price && (
-                                <p className="font-medium">${item.price.toFixed(2)}</p>
-                              )}
+                            <div className="flex items-center space-x-1">
                               <Button
                                 type="button"
-                                onClick={() => setQuantities(prev => ({
-                                  ...prev,
-                                  [item.id]: (prev[item.id] || 0) + 1
-                                }))}
                                 variant="outline"
                                 size="sm"
+                                className="h-6 w-6 p-0 text-xs"
+                                onClick={() => setQuantities(prev => ({
+                                  ...prev,
+                                  [id]: Math.max(0, (prev[id] || 0) - 1)
+                                }))}
                               >
-                                Add
+                                -
+                              </Button>
+                              <span className="w-6 text-center text-xs">{qty}</span>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-xs"
+                                onClick={() => setQuantities(prev => ({
+                                  ...prev,
+                                  [id]: (prev[id] || 0) + 1
+                                }))}
+                              >
+                                +
                               </Button>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                  );
-                })}
-              </Accordion>
-            )}
+                        );
+                      })}
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleSubmit}
+                    className="w-full mt-4"
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Submitting...' : 'Submit Order'}
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
-
-          <div className="mt-8">
-            <Label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-              Additional Notes (Optional)
-            </Label>
-            <textarea
-              id="notes"
-              value={customerNotes}
-              onChange={(e) => setCustomerNotes(e.target.value)}
-              placeholder="Any special requests or dietary requirements..."
-              className="w-full p-3 border rounded-lg resize-none"
-              rows={3}
-            />
-          </div>
-
-
-        </form>
+        </div>
       </div>
     </div>
   );
