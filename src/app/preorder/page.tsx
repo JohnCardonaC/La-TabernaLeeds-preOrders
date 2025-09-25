@@ -877,7 +877,7 @@ function PreOrderContent() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="confirmOrderName" className="block text-sm font-medium mb-2">
-                Person's Name
+                Person&apos;s Name
               </Label>
               <Input
                 id="confirmOrderName"
