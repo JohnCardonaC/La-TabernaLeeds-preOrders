@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { useIdleTimeout } from '@/lib/useIdleTimeout';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -21,7 +22,7 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children, currentPage }: AdminLayoutProps) {
   const router = useRouter();
 
-  const handleSignOut = async () => {
+  const performSignOut = async () => {
     const supabase = createClient();
     const { error } = await supabase.auth.signOut();
 
@@ -31,9 +32,16 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
       return;
     }
 
-    toast.success('Signed out successfully');
+    toast.success('Signed out due to inactivity');
     router.push('/login');
   };
+
+  const handleSignOut = async () => {
+    await performSignOut();
+  };
+
+  // Idle timeout: 1 minute for testing
+  useIdleTimeout(60000, performSignOut);
 
   const navItems = [
     { href: '/', label: 'Dashboard', icon: Home, key: 'dashboard' },
