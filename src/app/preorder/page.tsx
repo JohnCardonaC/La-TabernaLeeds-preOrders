@@ -52,8 +52,9 @@ function PreOrderContent() {
   const [submitting, setSubmitting] = useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [shareLink, setShareLink] = useState('');
-  const [bottomSheetOpen, setBottomSheetOpen] = useState(true);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [showIndividualModal, setShowIndividualModal] = useState(false);
   const [confirmOrderName, setConfirmOrderName] = useState('');
 
   useEffect(() => {
@@ -330,7 +331,7 @@ function PreOrderContent() {
         console.error('Error creating pre-order:', preOrderError);
         alert('Error submitting pre-order. Please try again.');
         setSubmitting(false);
-        setShowConfirmModal(false);
+        if (orderMode === 'group') setShowGroupModal(false); else setShowIndividualModal(false);
         return;
       }
 
@@ -348,33 +349,36 @@ function PreOrderContent() {
         console.error('Error creating pre-order items:', itemsError);
         alert('Error submitting pre-order items. Please try again.');
         setSubmitting(false);
-        setShowConfirmModal(false);
+        if (orderMode === 'group') setShowGroupModal(false); else setShowIndividualModal(false);
         return;
       }
 
-      setShowConfirmModal(false);
+      if (orderMode === 'group') setShowGroupModal(false); else setShowIndividualModal(false);
       window.location.href = '/thank-you';
 
     } catch (error) {
       console.error('Error submitting pre-order:', error);
       alert('Error submitting pre-order. Please try again.');
       setSubmitting(false);
-      setShowConfirmModal(false);
+      if (orderMode === 'group') setShowGroupModal(false); else setShowIndividualModal(false);
     }
   };
 
-  const switchOrderMode = () => {
-    setOrderMode(orderMode === 'group' ? 'individual' : 'group');
-    setConfirmOrderName('');
-    setShowConfirmModal(false);
-  };
 
   if (orderMode === null) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col md:items-center md:justify-center pt-12 md:pt-0 py-8 px-4 space-y-8">
+        
         <Card className="w-full max-w-2xl">
+           <Image
+                src="https://res.cloudinary.com/dycdigital/image/upload/v1758807509/logo-black_fgjop4.png"
+                alt="La Taberna"
+                width={60}
+                height={60}
+                className="mx-auto"
+              />
           <CardHeader>
-            <CardTitle className="text-lg">
+            <CardTitle className="text-lg p-4">
               How would you like to place your pre-order?
             </CardTitle>
             <CardDescription>
@@ -383,17 +387,17 @@ function PreOrderContent() {
           </CardHeader>
 
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
               <Button
                 onClick={() => setOrderMode('group')}
                 className="cursor-pointer h-45 md:h-50  p-4 text-sm font-medium bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-md shadow-sm transition-all duration-200"
                 variant="ghost"
               >
                 <div className="text-center">
-                  <div className="text-base font-semibold mb-1 text-xl">
+                  <div className="text-base font-semibold mb-1 break-words px-6text-xl">
                     Click here to Group pre-order
                   </div>
-                  <div className="mt-4 text-sm text-stone-600 whitespace-normal break-words">
+                  <div className="mt-3 text-sm  px-6 whitespace-normal break-words font-normal">
                     You decide and confirm the meals for the entire group.
                   </div>
                 </div>
@@ -401,18 +405,16 @@ function PreOrderContent() {
 
               <Button
                 onClick={() => setOrderMode('individual')}
-                className="cursor-pointer h-45 md:h-50 p-4 text-sm font-medium hover:opacity-90 text-white border border-stone-300 rounded-md shadow-sm transition-all duration-200"
-                style={{ backgroundColor: 'hsl(222.2 47.4% 11.2%)' }}
+                className="cursor-pointer h-45 md:h-50 text-sm font-medium bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-md shadow-sm transition-all duration-200"
                 variant="ghost"
               >
                 <div className="text-center">
-                  <div className="text-base font-semibold mb-1 text-xl text-white/100">
-                     Click here to Individual order
+                  <div className="text-base font-semibold mb-1 break-words px-6text-xl">
+                     Click here to Individual pre-order
                   </div>
-                  <div className="mt-3 text-sm text-white/90 whitespace-normal break-words font-normal">
-                    Enter and select your own meal, then share the link with the
-                    other guests so they can do the same. If you&apos;ve received this
-                    link, please place your pre-order through this option.
+                  <div className="mt-3 text-sm  px-6 whitespace-normal break-words font-normal">
+                    Select your own meal, then share the link with the
+                    other guests so they can do the same.
                   </div>
                 </div>
               </Button>
@@ -575,6 +577,7 @@ function PreOrderContent() {
                                             ...prev,
                                             [item.id]: 0
                                           }));
+                                          toast.success(`${item.name} added to the preorder`, { icon: '✅' });
                                         }
                                       }}
                                       variant="outline"
@@ -663,7 +666,7 @@ function PreOrderContent() {
                 <div className="mt-3">
                   <Button
                     type="button"
-                    onClick={() => setShowConfirmModal(true)}
+                    onClick={() => orderMode === 'group' ? setShowGroupModal(true) : setShowIndividualModal(true)}
                     className="w-full text-sm"
                     disabled={submitting}
                   >
@@ -680,12 +683,12 @@ function PreOrderContent() {
       <div className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto lg:hidden">
         <div className="bg-white border-t rounded-t-lg shadow-lg">
           <div
-            className="p-3 cursor-pointer bg-gray-100 border-b"
+          className="p-3 -mb-1 cursor-pointer bg-[#101828] border-b"
             onClick={() => setBottomSheetOpen(!bottomSheetOpen)}
           >
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Order Summary</span>
-              <span className="text-2xl px-5 bg-gray-600 text-white rounded-full p-1">{bottomSheetOpen ? '↓' : '↑'}</span>
+              <span className="text-base font-medium text-white">Order Summary: <p className="text-xs"> Items added {Object.values(quantities).reduce((sum, qty) => sum + qty, 0)}</p></span>
+              <span className="text-xl px-3 bg-gray-50 text-black rounded-full ">{bottomSheetOpen ? '↓' : '↑'}</span>
             </div>
           </div>
           <div
@@ -693,7 +696,7 @@ function PreOrderContent() {
               bottomSheetOpen ? 'max-h-96' : 'max-h-0'
             }`}
           >
-            <div className="p-4">
+            <div className="p-4 overflow-y-auto h-64" onWheel={(e) => e.stopPropagation()}>
               {Object.keys(quantities).filter(id => quantities[id] > 0).length === 0 ? (
                 <div className="text-center text-gray-500 py-4 text-sm">
                   Your order is empty
@@ -746,7 +749,7 @@ function PreOrderContent() {
                   </div>
                   <Button
                     type="button"
-                    onClick={() => setShowConfirmModal(true)}
+                    onClick={() => orderMode === 'group' ? setShowGroupModal(true) : setShowIndividualModal(true)}
                     className="w-full mt-4"
                     disabled={submitting}
                   >
@@ -759,24 +762,24 @@ function PreOrderContent() {
         </div>
       </div>
 
-      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+      {/* Group Pre-Order Modal */}
+      <Dialog open={showGroupModal} onOpenChange={setShowGroupModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Confirm Pre-Order</DialogTitle>
             <DialogDescription>
               <div className="bg-green-50 border border-green-200 rounded-md p-3 text-green-800 text-sm font-medium">
-                {orderMode === 'group'
-                  ? 'You are placing the pre-order for the entire group'
-                  : 'You are placing an individual pre-order'
-                }
+                You are placing the pre-order for the entire group
               </div>
               <p className="text-xs text-gray-600 mt-2">
-                {orderMode === 'group'
-                  ? 'If you want to place an individual order instead, '
-                  : 'If you want to order for the entire group instead, '
-                }
+                If you want to place an individual order instead,{' '}
                 <button
-                  onClick={switchOrderMode}
+                  onClick={() => {
+                    setShowGroupModal(false);
+                    setShowIndividualModal(true);
+                    setOrderMode('individual');
+                    setConfirmOrderName('');
+                  }}
                   className="text-blue-600 hover:text-blue-800 underline"
                 >
                   click here
@@ -834,7 +837,84 @@ function PreOrderContent() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConfirmModal(false)}>
+            <Button variant="outline" onClick={() => setShowGroupModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmSubmit} disabled={submitting}>
+              {submitting ? 'Confirming...' : 'Confirm'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Individual Pre-Order Modal */}
+      <Dialog open={showIndividualModal} onOpenChange={setShowIndividualModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Pre-Order</DialogTitle>
+            <DialogDescription>
+              <div className="bg-green-50 border border-green-200 rounded-md p-3 text-green-800 text-sm font-medium">
+                You are placing an individual pre-order
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                If you want to order for the entire group instead,{' '}
+                <button
+                  onClick={() => {
+                    setShowIndividualModal(false);
+                    setShowGroupModal(true);
+                    setOrderMode('group');
+                    setConfirmOrderName('');
+                  }}
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  click here
+                </button>
+                .
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="confirmOrderName" className="block text-sm font-medium mb-2">
+                Person's Name
+              </Label>
+              <Input
+                id="confirmOrderName"
+                type="text"
+                value={confirmOrderName}
+                onChange={(e) => setConfirmOrderName(e.target.value)}
+                placeholder="Enter your name"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Order Summary</label>
+              <div className="space-y-1 text-sm">
+                {Object.entries(quantities)
+                  .filter(([, qty]) => qty > 0)
+                  .map(([id, qty]) => {
+                    const item = menuItems.find(m => m.id === id);
+                    return (
+                      <div key={id} className="flex items-center">
+                        <span className="flex-1">{item?.name}</span>
+                        <span className="flex-1 border-b border-dotted border-gray-400 mx-2"></span>
+                        <span className="font-medium">{qty}</span>
+                      </div>
+                    );
+                  })}
+                <div className="flex items-center">
+                  <span className="flex-1 font-medium text-right pr-2 pt-2">Total Items</span>
+                  <span className="flex-1 border-b border-dotted border-gray-400 mx-2"></span>
+                  <span className="font-medium">{Object.values(quantities).reduce((sum, qty) => sum + qty, 0)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowIndividualModal(false)}>
               Cancel
             </Button>
             <Button onClick={handleConfirmSubmit} disabled={submitting}>
