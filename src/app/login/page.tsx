@@ -3,6 +3,7 @@
 import { useState } from 'react';
 export const dynamic = 'force-dynamic';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from "@/components/ui/button";
 import {
@@ -38,7 +39,15 @@ export default function LoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <Card className="mx-auto max-w-sm">
+      <div className="space-y-8">
+        <Image
+          src="https://res.cloudinary.com/dycdigital/image/upload/v1758807509/logo-black_fgjop4.png"
+          alt="La Taberna"
+          width={120}
+          height={120}
+          className="mx-auto"
+        />
+        <Card className="mx-auto max-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
@@ -78,6 +87,7 @@ export default function LoginPage() {
           </form>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
