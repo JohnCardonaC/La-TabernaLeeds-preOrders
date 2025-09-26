@@ -40,9 +40,10 @@ Deno.serve(async (req) => {
 
     const bookingReference = record.booking_reference
     const customerId = record.customer_id
+    const bookingId = record.id
 
-    if (!bookingReference || !customerId) {
-      throw new Error('Missing booking_reference or customer_id')
+    if (!bookingReference || !customerId || !bookingId) {
+      throw new Error('Missing booking_reference, customer_id, or id')
     }
 
     // Rate limiting: máximo 1 email por cliente cada 5 minutos
@@ -80,6 +81,19 @@ Deno.serve(async (req) => {
       throw new Error('Invalid customer email format')
     }
 
+    // Query access token
+    const { data: accessToken, error: tokenError } = await supabase
+      .from('access_tokens')
+      .select('token')
+      .eq('booking_id', bookingId)
+      .single()
+
+    if (tokenError || !accessToken) {
+      throw new Error(`Failed to fetch access token: ${tokenError?.message}`)
+    }
+
+    const token = accessToken.token
+
     // Generate preorder URL
     const siteUrl = Deno.env.get('SITE_URL') || 'https://latabernaleeds.com'
     if (!siteUrl) {
@@ -91,7 +105,7 @@ Deno.serve(async (req) => {
       throw new Error('SITE_URL must use HTTPS')
     }
     
-    const preorderUrl = `${siteUrl}/preorder?ref=${bookingReference}`
+    const preorderUrl = `${siteUrl}/preorder?token=${token}`
 
     // Get and validate Resend API key
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
@@ -127,6 +141,17 @@ Deno.serve(async (req) => {
     if (!emailResponse.ok) {
       const errorText = await emailResponse.text()
       throw new Error(`Resend API error: ${errorText}`)
+    }
+
+    // Update preorder_url in bookings
+    const { error: updateError } = await supabase
+      .from('bookings')
+      .update({ preorder_url: preorderUrl })
+      .eq('id', bookingId)
+
+    if (updateError) {
+      console.error('Failed to update preorder_url:', updateError.message)
+      // No throw, email was sent successfully
     }
 
     console.log(`Email sent successfully to ${customerEmail} for booking ${bookingReference}`)
