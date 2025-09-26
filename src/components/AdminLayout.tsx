@@ -72,7 +72,7 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-100">
       {/* Mobile Header */}
-      <div className="block md:hidden bg-white shadow-lg p-4 flex items-center justify-center relative">
+      <div className="block md:hidden bg-white shadow-lg  pt-10 pb-4 flex flex items-center justify-center relative">
         <Image
           src="https://res.cloudinary.com/dycdigital/image/upload/v1758807509/logo-black_fgjop4.png"
           alt="La Taberna Logo"
@@ -86,7 +86,7 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
           className="absolute right-4"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="!w-7 !h-7" />
         </Button>
       </div>
 
@@ -150,7 +150,7 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="absolute top-0 left-0 w-full bg-white shadow-lg max-h-screen overflow-y-auto">
-            <div className="p-4 border-b flex justify-center items-center relative">
+            <div className="p-4 pt-10 border-b flex justify-center items-center relative">
               <Image
                 src="https://res.cloudinary.com/dycdigital/image/upload/v1758807509/logo-black_fgjop4.png"
                 alt="La Taberna Logo"
@@ -160,7 +160,7 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
               />
               <Button
                 variant="ghost"
-                size="sm"
+                size="lg"
                 className="absolute right-4"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -193,9 +193,9 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
                     setIsMobileMenuOpen(false);
                     handleSignOut();
                   }}
-                  className="w-full justify-start"
+                  className="mt-10 w-full justify-start"
                 >
-                  <LogOut className="w-4 h-4 mr-2" />
+                  <LogOut className=" w-4 h-4 mr-2" />
                   Sign Out
                 </Button>
               </div>
