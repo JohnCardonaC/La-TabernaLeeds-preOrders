@@ -6,9 +6,10 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   Home,
-  Menu,
+  Utensils,
   ClipboardList,
-  LogOut
+  LogOut,
+  Calendar
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -25,7 +26,7 @@ import { useState } from 'react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
-  currentPage: 'dashboard' | 'menu' | 'pre-orders';
+  currentPage: 'dashboard' | 'menu' | 'pre-orders' | 'bookings';
 }
 
 export default function AdminLayout({ children, currentPage }: AdminLayoutProps) {
@@ -59,7 +60,8 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
 
   const navItems = [
     { href: '/', label: 'Dashboard', icon: Home, key: 'dashboard' },
-    { href: '/menu', label: 'Menu', icon: Menu, key: 'menu' },
+    { href: '/bookings', label: 'Bookings', icon: Calendar, key: 'bookings' },
+    { href: '/menu', label: 'Menu', icon: Utensils, key: 'menu' },
     { href: '/pre-orders', label: 'Pre-Orders', icon: ClipboardList, key: 'pre-orders' },
   ];
 
