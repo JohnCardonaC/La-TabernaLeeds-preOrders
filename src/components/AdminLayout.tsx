@@ -10,7 +10,9 @@ import {
   LogOut,
   Calendar,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Menu,
+  X
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -34,6 +36,7 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
   const router = useRouter();
   const [showIdleModal, setShowIdleModal] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const performSignOut = async () => {
     const supabase = createClient();
@@ -67,9 +70,28 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-100">
+      {/* Mobile Header */}
+      <div className="block md:hidden bg-white shadow-lg p-4 flex items-center justify-center relative">
+        <Image
+          src="https://res.cloudinary.com/dycdigital/image/upload/v1758807509/logo-black_fgjop4.png"
+          alt="La Taberna Logo"
+          width={120}
+          height={120}
+          className="h-12 w-auto"
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute right-4"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          <Menu className="w-6 h-6" />
+        </Button>
+      </div>
+
       {/* Sidebar */}
-      <div className={`bg-white shadow-lg flex flex-col relative ${isCollapsed ? 'w-18' : 'w-44'}`}>
+      <div className={`bg-white shadow-lg flex flex-col relative hidden md:flex ${isCollapsed ? 'w-18' : 'w-44'}`}>
         {/* Logo */}
         <div className={`border-b flex justify-center ${isCollapsed ? 'p-2' : 'p-6'}`}>
           <Image
@@ -123,6 +145,64 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
           </Button>
         </div>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="absolute top-0 left-0 w-full bg-white shadow-lg max-h-screen overflow-y-auto">
+            <div className="p-4 border-b flex justify-center items-center relative">
+              <Image
+                src="https://res.cloudinary.com/dycdigital/image/upload/v1758807509/logo-black_fgjop4.png"
+                alt="La Taberna Logo"
+                width={120}
+                height={120}
+                className="h-12 w-auto"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-4"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+            <nav className="p-4">
+              <ul className="space-y-2">
+                {navItems.map((item) => (
+                  <li key={item.key}>
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                        currentPage === item.key
+                          ? 'bg-gray-900 text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <item.icon className="w-5 h-5 mr-3" />
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleSignOut();
+                  }}
+                  className="w-full justify-start"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            </nav>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
