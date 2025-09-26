@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format, startOfDay, endOfDay, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, addWeeks, addMonths, addYears, parse } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
-import { Calendar as CalendarIcon, Copy, CheckCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Copy, CheckCircle, Printer } from 'lucide-react';
 import { DateRangePicker, Range } from 'react-date-range';
 import 'react-date-range/dist/styles.css'; // main css file
 import 'react-date-range/dist/theme/default.css'; // theme css file
@@ -146,6 +146,7 @@ function BookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [preOrdersData, setPreOrdersData] = useState<PreOrder[]>([]);
   const [loadingPreOrders, setLoadingPreOrders] = useState(false);
+  const [hasPreOrders, setHasPreOrders] = useState<Set<string>>(new Set());
 
   const staticRanges = [
     {
@@ -275,6 +276,16 @@ function BookingsPage() {
 
       setBookings(transformedBookings);
       setLoading(false);
+
+      // Fetch booking IDs that have pre-orders
+      const { data: preOrderData } = await supabase
+        .from('pre_orders')
+        .select('booking_id');
+
+      if (preOrderData) {
+        const preOrderSet = new Set(preOrderData.map(p => p.booking_id));
+        setHasPreOrders(preOrderSet);
+      }
     };
 
     fetchBookings();
@@ -300,6 +311,44 @@ function BookingsPage() {
       setTimeout(() => setCopied(null), 2000);
     } catch (err) {
       alert('Failed to copy link to clipboard.');
+    }
+  };
+
+  const handlePrint = () => {
+    // Consolidate items
+    const itemTotals = new Map<string, { name: string; quantity: number }>();
+    preOrdersData.forEach(preOrder => {
+      preOrder.attendees.forEach(attendee => {
+        attendee.pre_order_items.forEach(item => {
+          const key = item.menu_item.id;
+          if (itemTotals.has(key)) {
+            itemTotals.get(key)!.quantity += item.quantity;
+          } else {
+            itemTotals.set(key, { name: item.menu_item.name, quantity: item.quantity });
+          }
+        });
+      });
+    });
+
+    // Generate POS text
+    let posText = `PRE-ORDER FOR BOOKING ${selectedBooking?.booking_reference}\n`;
+    posText += `Customer: ${selectedBooking?.customer_name}\n`;
+    posText += `Date: ${selectedBooking?.booking_date}\n`;
+    posText += `Time: ${selectedBooking?.booking_time}\n`;
+    posText += `People: ${selectedBooking?.number_of_people}\n`;
+    posText += `Table: ${selectedBooking?.table_numbers}\n\n`;
+    posText += 'ITEMS:\n';
+    itemTotals.forEach(item => {
+      posText += `${item.quantity} x ${item.name}\n`;
+    });
+    posText += '\n';
+
+    // Open print window
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`<pre style="font-family: monospace; font-size: 12px;">${posText}</pre>`);
+      printWindow.document.close();
+      printWindow.print();
     }
   };
 
@@ -475,7 +524,7 @@ function BookingsPage() {
           <Table className="min-w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="min-w-[100px]">Ref</TableHead>
+                <TableHead className="min-w-[100px] text-sm">Ref</TableHead>
                 <TableHead className="min-w-[200px]">Customer</TableHead>
                 <TableHead className="hidden md:table-cell min-w-[120px]">Booking Date</TableHead>
                 <TableHead className="hidden md:table-cell min-w-[100px]">Booking Time</TableHead>
@@ -506,7 +555,12 @@ function BookingsPage() {
                         <div className="text-sm text-gray-600">{booking.customer_mobile}</div>
                       </div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">{booking.booking_date}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {(() => {
+                        const parts = booking.booking_date.split(' ');
+                        return <>{parts[0]} {parts[1]}<br />{parts[2]} {parts[3]}</>;
+                      })()}
+                    </TableCell>
                     <TableCell className="hidden md:table-cell">{booking.booking_time}</TableCell>
                     <TableCell className="hidden lg:table-cell text-center">{booking.table_numbers}</TableCell>
                     <TableCell className="hidden lg:table-cell text-center">{booking.number_of_people}</TableCell>
@@ -529,10 +583,10 @@ function BookingsPage() {
                           fetchPreOrders(booking.id);
                         }}
                         variant="outline"
-                        className="p-2 border-stone-200 hover:bg-stone-50"
+                        className={`px-2 py-6 border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
                         title="View preorder"
                       >
-                        View Preorder
+                        View<br />Preorder
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -553,12 +607,19 @@ function BookingsPage() {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              Preorders for Booking {selectedBooking?.booking_reference}
-            </DialogTitle>
-            <DialogDescription>
-              View the preorders submitted for this booking.
-            </DialogDescription>
+            <div className="flex justify-between items-center">
+              <div>
+                <DialogTitle>
+                  Preorders for Booking {selectedBooking?.booking_reference}
+                </DialogTitle>
+                <DialogDescription>
+                  View the preorders submitted for this booking.
+                </DialogDescription>
+              </div>
+              <Button onClick={handlePrint} variant="outline" size="sm" className="mr-4" title="Print consolidated orders">
+                <Printer className="h-4 w-4" />
+              </Button>
+            </div>
           </DialogHeader>
           <div className="space-y-6">
             {loadingPreOrders ? (
@@ -571,21 +632,20 @@ function BookingsPage() {
               preOrdersData.map((preOrder) => {
                 const allItems = preOrder.attendees.flatMap(attendee => attendee.pre_order_items);
                 return (
-                  <div key={preOrder.id} className="border rounded-lg p-4 bg-gray-50">
-                    <h3 className="font-semibold text-lg">{preOrder.name}</h3>
-                    <p className="text-sm text-stone-600">
-                      Submitted at: {format(new Date(preOrder.submitted_at), 'PPP p')}
+                  <div key={preOrder.id} className="mb-4">
+                    <h3 className="font-semibold">{preOrder.name}</h3>
+                    <p className="text-xs text-stone-600">
+                      {format(new Date(preOrder.submitted_at), 'PPP p')}
                     </p>
                     {preOrder.customer_notes && (
-                      <p className="text-sm text-stone-600 mt-2">
+                      <p className="text-xs text-stone-600 mt-1">
                         Notes: {preOrder.customer_notes}
                       </p>
                     )}
-                    <div className="mt-4">
-                      <h4 className="font-medium mb-2">Selected Dishes:</h4>
-                      <ul className="space-y-1">
+                    <div className="mt-2">
+                      <ul className="text-sm space-y-1">
                         {allItems.map((item) => (
-                          <li key={item.id} className="text-sm">
+                          <li key={item.id}>
                             {item.quantity} x {item.menu_item.name}
                           </li>
                         ))}
