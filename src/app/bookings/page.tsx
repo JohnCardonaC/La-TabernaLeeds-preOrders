@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format, startOfDay, endOfDay, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, addWeeks, addMonths, addYears, parse } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
@@ -58,7 +58,7 @@ type RawBooking = {
   } | null;
 };
 
-export default function BookingsPage() {
+function BookingsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -393,5 +393,13 @@ export default function BookingsPage() {
         </div>
       </div>
     </AdminLayout>
+  );
+}
+
+export default function BookingsPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BookingsPage />
+    </Suspense>
   );
 }
