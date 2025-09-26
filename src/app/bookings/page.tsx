@@ -42,6 +42,22 @@ type Booking = {
   channel: string;
 };
 
+type RawBooking = {
+  id: string;
+  created_at: string;
+  booking_reference: string;
+  booking_date: string;
+  booking_time: string;
+  table_numbers: string;
+  number_of_people: number;
+  channel: string;
+  customers: {
+    customer_name: string;
+    customer_email: string;
+    customer_mobile: string;
+  } | null;
+};
+
 export default function BookingsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -159,6 +175,7 @@ export default function BookingsPage() {
         return;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let transformedBookings: Booking[] = (data || []).map((booking: any) => ({
         id: booking.id,
         created_at: booking.created_at,
@@ -214,6 +231,7 @@ export default function BookingsPage() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDateRangeSelect = (item: any) => {
     setRanges(Object.values(item));
   };
