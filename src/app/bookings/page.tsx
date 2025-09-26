@@ -31,12 +31,15 @@ import { createClient } from '@/lib/supabase/client';
 type Booking = {
   id: string;
   created_at: string;
+  booking_reference: string;
   customer_name: string;
+  customer_email: string;
+  customer_mobile: string;
   booking_date: string;
   booking_time: string;
+  table_numbers: string;
   number_of_people: number;
-  pre_order_status: 'Completed' | 'Not Sent';
-  shareToken?: string;
+  channel: string;
 };
 
 export default function BookingsPage() {
@@ -133,14 +136,16 @@ export default function BookingsPage() {
         .select(`
           id,
           created_at,
+          booking_reference,
           booking_date,
           booking_time,
+          table_numbers,
           number_of_people,
+          channel,
           customers (
-            customer_name
-          ),
-          pre_orders (
-            id
+            customer_name,
+            customer_email,
+            customer_mobile
           )
         `)
         .order('booking_date', { ascending: true })
@@ -157,11 +162,15 @@ export default function BookingsPage() {
       let transformedBookings: Booking[] = (data || []).map((booking: any) => ({
         id: booking.id,
         created_at: booking.created_at,
+        booking_reference: booking.booking_reference,
         customer_name: booking.customers?.customer_name || 'Unknown',
+        customer_email: booking.customers?.customer_email || '',
+        customer_mobile: booking.customers?.customer_mobile || '',
         booking_date: booking.booking_date,
         booking_time: booking.booking_time,
+        table_numbers: booking.table_numbers,
         number_of_people: booking.number_of_people,
-        pre_order_status: booking.pre_orders && booking.pre_orders.length > 0 ? 'Completed' : 'Not Sent',
+        channel: booking.channel,
       }));
 
       // Filter by selected date range if provided
@@ -305,42 +314,43 @@ export default function BookingsPage() {
             </PopoverContent>
           </Popover>
         </div>
-        <div className="border rounded-lg bg-white">
-          <Table>
+        <div className="border rounded-lg bg-white overflow-x-auto">
+          <Table className="min-w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Time</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead className="text-center">Guests</TableHead>
-                <TableHead className="text-center w-[180px]">Pre-Order Status</TableHead>
-                <TableHead className="text-center">Share Link</TableHead>
+                <TableHead className="min-w-[100px]">Ref</TableHead>
+                <TableHead className="min-w-[200px]">Customer</TableHead>
+                <TableHead className="hidden md:table-cell min-w-[120px]">Booking Date</TableHead>
+                <TableHead className="hidden md:table-cell min-w-[100px]">Booking Time</TableHead>
+                <TableHead className="hidden lg:table-cell min-w-[120px]">Table numbers</TableHead>
+                <TableHead className="hidden lg:table-cell text-center min-w-[100px]"># of People</TableHead>
+                <TableHead className="hidden xl:table-cell min-w-[100px]">Channel</TableHead>
+                <TableHead className="text-center min-w-[120px]">Pre-order link</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-stone-500">
+                  <TableCell colSpan={8} className="h-24 text-center text-stone-500">
                     Loading bookings...
                   </TableCell>
                 </TableRow>
               ) : bookings && bookings.length > 0 ? (
                 bookings.map((booking) => (
                   <TableRow key={booking.id}>
-                    <TableCell className="font-medium">{booking.booking_time.substring(0, 5)}</TableCell>
-                    <TableCell>{booking.customer_name}</TableCell>
-                    <TableCell className="text-center">{booking.number_of_people}</TableCell>
-                    <TableCell className="text-center">
-                      <span
-                        className={cn(
-                          'px-3 py-1 text-xs font-semibold rounded-full',
-                          booking.pre_order_status === 'Completed'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-stone-100 text-stone-800'
-                        )}
-                      >
-                        {booking.pre_order_status}
-                      </span>
+                    <TableCell className="font-medium">{booking.booking_reference}</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div>{booking.customer_name}</div>
+                        <div className="text-sm text-gray-600">{booking.customer_email}</div>
+                        <div className="text-sm text-gray-600">{booking.customer_mobile}</div>
+                      </div>
                     </TableCell>
+                    <TableCell className="hidden md:table-cell">{booking.booking_date}</TableCell>
+                    <TableCell className="hidden md:table-cell">{booking.booking_time}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{booking.table_numbers}</TableCell>
+                    <TableCell className="hidden lg:table-cell text-center">{booking.number_of_people}</TableCell>
+                    <TableCell className="hidden xl:table-cell">{booking.channel}</TableCell>
                     <TableCell className="text-center">
                       <Button
                         onClick={() => handleCopyLink(booking.id)}
@@ -355,7 +365,7 @@ export default function BookingsPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-stone-500">
+                  <TableCell colSpan={8} className="h-24 text-center text-stone-500">
                     No bookings found for this date.
                   </TableCell>
                 </TableRow>

@@ -81,85 +81,11 @@ export default function DashboardView({ bookings }: { bookings: Booking[] }) {
 
   return (
     <AdminLayout currentPage="dashboard">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800">
-          Reservations for{' '}
-          <span className="text-blue-600">{date ? format(date, 'PPP') : 'Today'}</span>
-        </h2>
-        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant={'outline'}
-              className={cn(
-                'w-[280px] justify-start text-left font-normal bg-white',
-                !date && 'text-muted-foreground'
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date ? format(date, 'PPP') : <span>Pick a date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={handleDateSelect}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-      <div className="border rounded-lg bg-white shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Time</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead className="text-center">Guests</TableHead>
-              <TableHead className="text-center w-[180px]">Pre-Order Status</TableHead>
-              <TableHead className="text-center">Share Link</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {bookings && bookings.length > 0 ? (
-              bookings.map((booking) => (
-                <TableRow key={booking.id}>
-                  <TableCell className="font-medium">{booking.booking_time.substring(0, 5)}</TableCell>
-                  <TableCell>{booking.customer_name}</TableCell>
-                  <TableCell className="text-center">{booking.number_of_people}</TableCell>
-                  <TableCell className="text-center">
-                    <span
-                      className={cn(
-                        'px-3 py-1 text-xs font-semibold rounded-full',
-                        booking.pre_order_status === 'Completed'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-200 text-gray-800'
-                      )}
-                    >
-                      {booking.pre_order_status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Button
-                      onClick={() => handleCopyLink(booking.id)}
-                      variant="ghost"
-                      className="p-2"
-                      title="Copy share link"
-                    >
-                      {copiedId === booking.id ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-gray-500">
-                  No bookings found for this date.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-3xl font-semibold text-stone-800 mb-4">Dashboard</h2>
+          <p className="text-stone-600">soon ...</p>
+        </div>
       </div>
     </AdminLayout>
   );
