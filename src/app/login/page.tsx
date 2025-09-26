@@ -52,7 +52,7 @@ export default function LoginPage() {
           height={120}
           className="mx-auto"
         />
-        <Card className="mx-auto w-md">
+        <Card className="w-96"> 
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>

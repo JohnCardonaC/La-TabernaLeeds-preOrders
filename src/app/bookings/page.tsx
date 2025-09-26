@@ -26,6 +26,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -447,10 +453,10 @@ function BookingsPage() {
 
   return (
     <AdminLayout currentPage="bookings">
-      <div className="bg-gray-50 min-h-screen p-6">
-        <div className="flex justify-between items-center mb-8">
+      <div className="bg-gray-50 min-h-screen p-4 md:p-6">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
           <div>
-            <h2 className="text-2xl font-semibold text-stone-800">
+            <h2 className="text-xl md:text-2xl font-semibold text-stone-800">
               {rangeLabel || (ranges[0].startDate ? (
                 ranges[0].endDate && ranges[0].startDate !== ranges[0].endDate
                   ? `Bookings from ${format(ranges[0].startDate, 'PPP')} to ${format(ranges[0].endDate, 'PPP')}`
@@ -470,7 +476,7 @@ function BookingsPage() {
               <Button
                 variant={'outline'}
                 className={cn(
-                  'w-[280px] justify-start text-left font-normal bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200',
+                  'w-full md:w-[280px] justify-start text-left font-normal bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200',
                   !ranges[0].startDate && 'text-stone-500'
                 )}
               >
@@ -520,7 +526,7 @@ function BookingsPage() {
             </PopoverContent>
           </Popover>
         </div>
-        <div className="border rounded-lg bg-white overflow-x-auto">
+        <div className="hidden md:block border rounded-lg bg-white overflow-x-auto">
           <Table className="min-w-full">
             <TableHeader>
               <TableRow>
@@ -550,9 +556,9 @@ function BookingsPage() {
                     <TableCell className="font-medium">{booking.booking_reference}</TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <div>{booking.customer_name}</div>
-                        <div className="text-sm text-gray-600">{booking.customer_email}</div>
-                        <div className="text-sm text-gray-600">{booking.customer_mobile}</div>
+                        <div className="text-sm md:text-base">{booking.customer_name}</div>
+                        <div className="text-xs md:text-sm text-gray-600">{booking.customer_email}</div>
+                        <div className="text-xs md:text-sm text-gray-600">{booking.customer_mobile}</div>
                       </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
@@ -583,10 +589,11 @@ function BookingsPage() {
                           fetchPreOrders(booking.id);
                         }}
                         variant="outline"
-                        className={`px-2 py-6 border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
+                        className={`px-2 py-2 md:py-6 border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
                         title="View preorder"
                       >
-                        View<br />Preorder
+                        <span className="hidden md:inline">View<br />Preorder</span>
+                        <span className="md:hidden">View</span>
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -601,22 +608,75 @@ function BookingsPage() {
             </TableBody>
           </Table>
         </div>
+
+        {/* Mobile Cards */}
+        <div className="block md:hidden space-y-4">
+          {loading ? (
+            <p className="text-center text-stone-500">Loading bookings...</p>
+          ) : bookings && bookings.length > 0 ? (
+            bookings.map((booking) => (
+              <Card key={booking.id} className="bg-white">
+                <CardHeader>
+                  <CardTitle className="text-lg">{booking.booking_reference}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div><strong>Customer:</strong> {booking.customer_name}</div>
+                    <div><strong>Email:</strong> {booking.customer_email}</div>
+                    <div><strong>Mobile:</strong> {booking.customer_mobile}</div>
+                    <div><strong>Date:</strong> {booking.booking_date}</div>
+                    <div><strong>Time:</strong> {booking.booking_time}</div>
+                    <div><strong>Table:</strong> {booking.table_numbers}</div>
+                    <div><strong>People:</strong> {booking.number_of_people}</div>
+                    <div><strong>Channel:</strong> {booking.channel}</div>
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        onClick={() => handleCopyLink(booking.id)}
+                        variant="outline"
+                        size="sm"
+                        title="Copy preorder link"
+                      >
+                        {copiedId === booking.id ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        <span className="ml-1">Copy preorder link</span>
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setSelectedBooking(booking);
+                          setIsModalOpen(true);
+                          fetchPreOrders(booking.id);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className={hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}
+                        title="View preorder"
+                      >
+                        View Preorder
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <p className="text-center text-stone-500">No bookings found for this date.</p>
+          )}
+        </div>
       </div>
 
       {/* Preorder Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-full md:max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
               <div>
-                <DialogTitle>
+                <DialogTitle className="text-lg md:text-xl">
                   Preorders for Booking {selectedBooking?.booking_reference}
                 </DialogTitle>
                 <DialogDescription>
                   View the preorders submitted for this booking.
                 </DialogDescription>
               </div>
-              <Button onClick={handlePrint} variant="outline" size="sm" className="mr-4" title="Print consolidated orders">
+              <Button onClick={handlePrint} variant="outline" size="sm" className="self-start md:self-auto" title="Print consolidated orders">
                 <Printer className="h-4 w-4" />
               </Button>
             </div>
