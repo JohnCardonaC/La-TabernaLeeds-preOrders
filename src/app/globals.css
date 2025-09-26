@@ -120,3 +120,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+.rdrDateRangePicker .rdrStaticRanges {
+  width: 15% !important;
+}
+
+.rdrDateRangePicker .rdrCalendarWrapper {
+  width: 85% !important;
+}
+
+@media (max-width: 768px) {
+  .rdrDefinedRangesWrapper {
+    display: none !important;
+  }
+  .rdrDateRangePicker .rdrCalendarWrapper {
+    width: 100% !important;
+  }
+}

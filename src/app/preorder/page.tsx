@@ -554,7 +554,7 @@ function PreOrderContent() {
                                       <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                                     )}
                                     {item.price && (
-                                      <p className="font-medium mt-1">${item.price.toFixed(2)}</p>
+                                      <p className="font-medium mt-1">£{item.price.toFixed(2)}</p>
                                     )}
                                   </div>
                                   <div className="flex items-center space-x-1 ml-4">

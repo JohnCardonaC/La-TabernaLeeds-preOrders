@@ -488,7 +488,7 @@ function BookingsPage() {
                 ) : <span>Pick a date or range</span>}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-4">
+            <PopoverContent className="w-full p-4">
               <div className=" flex flex-wrap gap-2 mb-4">
                 {Array.from({ length: 6 }, (_, i) => {
                   const date = addDays(londonNow, i);

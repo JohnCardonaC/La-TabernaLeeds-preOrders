@@ -24,6 +24,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/client';
 import AdminLayout from '@/components/AdminLayout';
 
@@ -69,7 +75,16 @@ export default function MenuPage() {
         setError('Error loading menu items.');
         console.error(error);
       } else {
-        setMenuItems(data || []);
+        const categoryOrder = ['Starters', 'Vegetables', 'Meat', 'Fish'];
+        const sortedData = (data || []).sort((a, b) => {
+          const aIndex = categoryOrder.indexOf(a.category);
+          const bIndex = categoryOrder.indexOf(b.category);
+          if (aIndex === -1 && bIndex === -1) return a.category.localeCompare(b.category);
+          if (aIndex === -1) return 1;
+          if (bIndex === -1) return -1;
+          return aIndex - bIndex;
+        });
+        setMenuItems(sortedData);
       }
       setLoading(false);
     };
@@ -144,7 +159,16 @@ export default function MenuPage() {
           .select('*')
           .order('category', { ascending: true })
           .order('name', { ascending: true });
-        setMenuItems(data || []);
+        const categoryOrder = ['Starters', 'Vegetables', 'Meat', 'Fish'];
+        const sortedData = (data || []).sort((a, b) => {
+          const aIndex = categoryOrder.indexOf(a.category);
+          const bIndex = categoryOrder.indexOf(b.category);
+          if (aIndex === -1 && bIndex === -1) return a.category.localeCompare(b.category);
+          if (aIndex === -1) return 1;
+          if (bIndex === -1) return -1;
+          return aIndex - bIndex;
+        });
+        setMenuItems(sortedData);
         setFormData({ name: '', description: '', price: '', category: '' });
         setIsEditMode(false);
         setEditingItem(null);
@@ -166,7 +190,16 @@ export default function MenuPage() {
           .select('*')
           .order('category', { ascending: true })
           .order('name', { ascending: true });
-        setMenuItems(data || []);
+        const categoryOrder = ['Starters', 'Vegetables', 'Meat', 'Fish'];
+        const sortedData = (data || []).sort((a, b) => {
+          const aIndex = categoryOrder.indexOf(a.category);
+          const bIndex = categoryOrder.indexOf(b.category);
+          if (aIndex === -1 && bIndex === -1) return a.category.localeCompare(b.category);
+          if (aIndex === -1) return 1;
+          if (bIndex === -1) return -1;
+          return aIndex - bIndex;
+        });
+        setMenuItems(sortedData);
         setFormData({ name: '', description: '', price: '', category: '' });
         setIsDialogOpen(false);
       }
@@ -276,7 +309,7 @@ export default function MenuPage() {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="border rounded-lg bg-white shadow-sm">
+      <div className="hidden md:block border rounded-lg bg-white shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
@@ -293,7 +326,7 @@ export default function MenuPage() {
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.description || '-'}</TableCell>
-                  <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">£{item.price.toFixed(2)}</TableCell>
                   <TableCell>{item.category}</TableCell>
                   <TableCell className="text-center">
                     <div className="flex justify-center space-x-2">
@@ -316,6 +349,36 @@ export default function MenuPage() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="block md:hidden space-y-4">
+        {menuItems.length > 0 ? (
+          menuItems.map((item) => (
+            <Card key={item.id} className="bg-white">
+              <CardHeader>
+                <CardTitle className="text-lg">{item.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div><strong>Description:</strong> {item.description || '-'}</div>
+                  <div><strong>Price:</strong> £{item.price.toFixed(2)}</div>
+                  <div><strong>Category:</strong> {item.category}</div>
+                  <div className="flex gap-2 mt-4">
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
+                      Edit
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(item)}>
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <p className="text-center text-gray-500">No menu items found.</p>
+        )}
       </div>
     </AdminLayout>
   );
