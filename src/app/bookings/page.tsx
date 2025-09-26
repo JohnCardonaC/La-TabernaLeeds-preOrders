@@ -54,6 +54,7 @@ type Booking = {
   table_numbers: string;
   number_of_people: number;
   channel: string;
+  preorder_url: string;
 };
 
 type RawBooking = {
@@ -237,6 +238,7 @@ function BookingsPage() {
           table_numbers,
           number_of_people,
           channel,
+          preorder_url,
           customers (
             customer_name,
             customer_email,
@@ -267,6 +269,7 @@ function BookingsPage() {
         table_numbers: booking.table_numbers,
         number_of_people: booking.number_of_people,
         channel: booking.channel,
+        preorder_url: booking.preorder_url,
       }));
 
       // Filter by selected date range if provided
@@ -573,12 +576,12 @@ function BookingsPage() {
                     <TableCell className="hidden xl:table-cell">{booking.channel}</TableCell>
                     <TableCell className="text-center">
                       <Button
-                        onClick={() => handleCopyLink(booking.id)}
+                        onClick={() => window.open(booking.preorder_url, '_blank')}
                         variant="outline"
-                        className="p-2 border-stone-200 hover:bg-stone-50"
-                        title="Copy share link"
+                        className="px-2 py-1 text-xs border-stone-200 hover:bg-stone-50"
+                        title="Go to preorder page"
                       >
-                        {copiedId === booking.id ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        Go to preorder link
                       </Button>
                     </TableCell>
                     <TableCell className="text-center">
@@ -589,11 +592,10 @@ function BookingsPage() {
                           fetchPreOrders(booking.id);
                         }}
                         variant="outline"
-                        className={`px-2 py-2 md:py-6 border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
+                        className={`px-2 py-1 text-xs border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
                         title="View preorder"
                       >
-                        <span className="hidden md:inline">View<br />Preorder</span>
-                        <span className="md:hidden">View</span>
+                        View Preorder
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -629,15 +631,14 @@ function BookingsPage() {
                     <div><strong>Table:</strong> {booking.table_numbers}</div>
                     <div><strong>People:</strong> {booking.number_of_people}</div>
                     <div><strong>Channel:</strong> {booking.channel}</div>
-                    <div className="flex gap-2 mt-4">
+                    <div className="flex flex-col gap-1 mt-4">
                       <Button
-                        onClick={() => handleCopyLink(booking.id)}
+                        onClick={() => window.open(booking.preorder_url, '_blank')}
                         variant="outline"
                         size="sm"
-                        title="Copy preorder link"
+                        title="Go to preorder page"
                       >
-                        {copiedId === booking.id ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        <span className="ml-1">Copy preorder link</span>
+                        Go to preorder link
                       </Button>
                       <Button
                         onClick={() => {
@@ -647,7 +648,7 @@ function BookingsPage() {
                         }}
                         variant="outline"
                         size="sm"
-                        className={hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}
+                        className={`px-2 py-1 text-xs border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
                         title="View preorder"
                       >
                         View Preorder
