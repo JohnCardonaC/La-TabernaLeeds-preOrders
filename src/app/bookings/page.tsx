@@ -12,6 +12,7 @@ import 'react-date-range/dist/theme/default.css'; // theme css file
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
 import {
   Popover,
   PopoverContent,
@@ -154,6 +155,8 @@ function BookingsPage() {
   const [preOrdersData, setPreOrdersData] = useState<PreOrder[]>([]);
   const [loadingPreOrders, setLoadingPreOrders] = useState(false);
   const [hasPreOrders, setHasPreOrders] = useState<Set<string>>(new Set());
+  const [selectedChannel, setSelectedChannel] = useState<string>('All');
+  const [selectedTableSize, setSelectedTableSize] = useState<string>('All');
 
   const staticRanges = [
     {
@@ -283,6 +286,18 @@ function BookingsPage() {
         });
       }
 
+      // Filter by channel
+      if (selectedChannel !== 'All') {
+        transformedBookings = transformedBookings.filter(booking => booking.channel === selectedChannel);
+      }
+
+      // Filter by table size
+      if (selectedTableSize === 'Large') {
+        transformedBookings = transformedBookings.filter(booking => booking.number_of_people >= 6);
+      } else if (selectedTableSize === 'Small') {
+        transformedBookings = transformedBookings.filter(booking => booking.number_of_people < 6);
+      }
+
       setBookings(transformedBookings);
       setLoading(false);
 
@@ -298,7 +313,7 @@ function BookingsPage() {
     };
 
     fetchBookings();
-  }, [ranges]);
+  }, [ranges, selectedChannel, selectedTableSize]);
 
   const handleCopyLink = async (bookingId: string) => {
     try {
@@ -457,7 +472,7 @@ function BookingsPage() {
   return (
     <AdminLayout currentPage="bookings">
       <div className="bg-gray-50 min-h-screen p-4 md:p-6">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-12 gap-4">
           <div>
             <h2 className="text-xl md:text-2xl font-semibold text-stone-800">
               {rangeLabel || (ranges[0].startDate ? (
@@ -474,62 +489,118 @@ function BookingsPage() {
               </p>
             )}
           </div>
-          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant={'outline'}
-                className={cn(
-                  'w-full md:w-[280px] justify-start text-left font-normal bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200',
-                  !ranges[0].startDate && 'text-stone-500'
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {ranges[0].startDate ? (
-                  ranges[0].endDate && ranges[0].startDate !== ranges[0].endDate
-                    ? `${format(ranges[0].startDate, 'LLL dd')} - ${format(ranges[0].endDate, 'LLL dd')}`
-                    : format(ranges[0].startDate, 'PPP')
-                ) : <span>Pick a date or range</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-4">
-              <div className=" flex flex-wrap gap-2 mb-4">
-                {Array.from({ length: 6 }, (_, i) => {
-                  const date = addDays(londonNow, i);
-                  const label = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : format(date, 'EEEE');
-                  return (
+        </div>
+
+        {/* Filters Section */}
+        <div className="bg-white border rounded-lg p-4 mb-6">
+          <h3 className="text-lg font-semibold mb-4">Filters</h3>
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="w-[280px]">
+              <label className="block text-sm font-medium text-stone-700 mb-2">Date Range</label>
+              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={'outline'}
+                    className={cn(
+                      'w-full justify-start text-left font-normal bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200',
+                      !ranges[0].startDate && 'text-stone-500'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {ranges[0].startDate ? (
+                      ranges[0].endDate && ranges[0].startDate !== ranges[0].endDate
+                        ? `${format(ranges[0].startDate, 'LLL dd')} - ${format(ranges[0].endDate, 'LLL dd')}`
+                        : format(ranges[0].startDate, 'PPP')
+                    ) : <span>Pick a date or range</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-4">
+                  <div className=" flex flex-wrap gap-2 mb-4">
+                    {Array.from({ length: 6 }, (_, i) => {
+                      const date = addDays(londonNow, i);
+                      const label = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : format(date, 'EEEE');
+                      return (
+                        <Button
+                          key={i}
+                          variant="outline"
+                          className="text-xs"
+                          size="sm"
+                          onClick={() => {
+                            setRanges([{ startDate: startOfDay(date), endDate: endOfDay(date), key: 'selection' }]);
+                          }}
+                        >
+                          {label}
+                        </Button>
+                      );
+                    })}
                     <Button
-                      key={i}
                       variant="outline"
-                      className="text-xs"
                       size="sm"
                       onClick={() => {
-                        setRanges([{ startDate: startOfDay(date), endDate: endOfDay(date), key: 'selection' }]);
+                        setRanges([{ startDate: undefined, endDate: undefined, key: 'selection' }]);
                       }}
                     >
-                      {label}
+                      Clear
                     </Button>
-                  );
-                })}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setRanges([{ startDate: undefined, endDate: undefined, key: 'selection' }]);
-                  }}
-                >
-                  Clear
-                </Button>
-              </div>
-              <DateRangePicker
-                ranges={ranges}
-                onChange={handleDateRangeSelect}
-                staticRanges={staticRanges}
-                inputRanges={[]}
-              />
-            </PopoverContent>
-          </Popover>
+                  </div>
+                  <DateRangePicker
+                    ranges={ranges}
+                    onChange={handleDateRangeSelect}
+                    staticRanges={staticRanges}
+                    inputRanges={[]}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="min-w-[150px]">
+              <label className="block text-sm font-medium text-stone-700 mb-2">Channel</label>
+              <select
+                value={selectedChannel}
+                onChange={(e) => setSelectedChannel(e.target.value)}
+                className="w-full px-3 py-2 border border-stone-200 rounded-md bg-white text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-500"
+              >
+                <option value="All">All Channels</option>
+                <option value="Dish Cult iOS">Dish Cult iOS</option>
+                <option value="Internal">Internal</option>
+                <option value="Dish Cult Portal">Dish Cult Portal</option>
+                <option value="Página Web">Página Web</option>
+                <option value="Meta Ads">Meta Ads</option>
+                <option value="Organic social media">Organic social media</option>
+                <option value="TripAdvisor">TripAdvisor</option>
+                <option value="Organic Search">Organic Search</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div className="min-w-[150px]">
+              <label className="block text-sm font-medium text-stone-700 mb-2">Table Size</label>
+              <select
+                value={selectedTableSize}
+                onChange={(e) => setSelectedTableSize(e.target.value)}
+                className="w-full px-3 py-2 border border-stone-200 rounded-md bg-white text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-500"
+              >
+                <option value="All">All Tables</option>
+                <option value="Large">Large Tables (6+ people)</option>
+                <option value="Small">Small Tables (less than 6 people)</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div className="hidden md:block border rounded-lg bg-white overflow-x-auto">
+
+        {/* Counter for mobile */}
+        <div className="block md:hidden mb-4">
+          <p className="text-sm text-stone-800 font-semibold">
+            Showing {bookings.length} bookings
+          </p>
+        </div>
+
+        <div className="hidden md:block border rounded-lg bg-white overflow-x-auto mt-4">
+          <div className="p-4 border-b bg-gray-50">
+            <p className="text-sm text-stone-800 font-semibold">
+              Showing {bookings.length} bookings
+            </p>
+          </div>
           <Table className="min-w-full">
             <TableHeader>
               <TableRow>
