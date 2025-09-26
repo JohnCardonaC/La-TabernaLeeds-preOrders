@@ -25,6 +25,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import AdminLayout from '@/components/AdminLayout';
 import { createClient } from '@/lib/supabase/client';
 
@@ -58,6 +66,66 @@ type RawBooking = {
   } | null;
 };
 
+type PreOrder = {
+  id: string;
+  booking_id: string;
+  name: string;
+  submitted_at: string;
+  customer_notes: string | null;
+  order_mode: string | null;
+  attendees: Attendee[];
+};
+
+type Attendee = {
+  id: string;
+  person_name: string;
+  pre_order_items: PreOrderItem[];
+};
+
+type PreOrderItem = {
+  id: string;
+  quantity: number;
+  menu_item: MenuItem;
+};
+
+type MenuItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  category: string | null;
+};
+
+type RawPreOrder = {
+  id: string;
+  booking_id: string;
+  name: string;
+  submitted_at: string;
+  customer_notes: string | null;
+  order_mode: string | null;
+  attendees: RawAttendee[] | null;
+};
+
+type RawAttendee = {
+  id: string;
+  person_name: string;
+  pre_order_items: RawPreOrderItem[] | null;
+};
+
+type RawPreOrderItem = {
+  id: string;
+  quantity: number;
+  menu_item: RawMenuItem | null;
+};
+
+type RawMenuItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  price: string;
+  category: string | null;
+};
+
 function BookingsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,6 +142,10 @@ function BookingsPage() {
   const [copiedId, setCopied] = useState<string | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [preOrdersData, setPreOrdersData] = useState<PreOrder[]>([]);
+  const [loadingPreOrders, setLoadingPreOrders] = useState(false);
 
   const staticRanges = [
     {
@@ -231,6 +303,73 @@ function BookingsPage() {
     }
   };
 
+  const fetchPreOrders = async (bookingId: string) => {
+    setLoadingPreOrders(true);
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from('pre_orders')
+      .select(`
+        id,
+        booking_id,
+        name,
+        submitted_at,
+        customer_notes,
+        order_mode,
+        attendees (
+          id,
+          person_name,
+          pre_order_items (
+            id,
+            quantity,
+            menu_item:menus (
+              id,
+              name,
+              description,
+              price,
+              category
+            )
+          )
+        )
+      `)
+      .eq('booking_id', bookingId)
+      .order('submitted_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching pre-orders:', error);
+      setPreOrdersData([]);
+    } else {
+      // Transform the data to match our types
+      const transformedData: PreOrder[] = (data as RawPreOrder[] || []).map((po: RawPreOrder) => ({
+        id: po.id,
+        booking_id: po.booking_id,
+        name: po.name,
+        submitted_at: po.submitted_at,
+        customer_notes: po.customer_notes,
+        order_mode: po.order_mode,
+        attendees: (po.attendees || []).map((a: RawAttendee) => ({
+          id: a.id,
+          person_name: a.person_name,
+          pre_order_items: (a.pre_order_items || [])
+            .map((poi: RawPreOrderItem) => ({
+              id: poi.id,
+              quantity: poi.quantity,
+              menu_item: poi.menu_item ? {
+                id: poi.menu_item.id,
+                name: poi.menu_item.name,
+                description: poi.menu_item.description,
+                price: parseFloat(poi.menu_item.price),
+                category: poi.menu_item.category,
+              } : null,
+            }))
+            .filter((poi) => poi.menu_item !== null) as PreOrderItem[],
+        })),
+      }));
+      setPreOrdersData(transformedData);
+    }
+    setLoadingPreOrders(false);
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDateRangeSelect = (item: any) => {
     setRanges(Object.values(item));
@@ -340,16 +479,19 @@ function BookingsPage() {
                 <TableHead className="min-w-[200px]">Customer</TableHead>
                 <TableHead className="hidden md:table-cell min-w-[120px]">Booking Date</TableHead>
                 <TableHead className="hidden md:table-cell min-w-[100px]">Booking Time</TableHead>
-                <TableHead className="hidden lg:table-cell min-w-[120px]">Table numbers</TableHead>
+                <TableHead className="hidden lg:table-cell min-w-[80px] text-center">
+                  Table<br />numbers
+                </TableHead>
                 <TableHead className="hidden lg:table-cell text-center min-w-[100px]"># of People</TableHead>
                 <TableHead className="hidden xl:table-cell min-w-[100px]">Channel</TableHead>
                 <TableHead className="text-center min-w-[120px]">Pre-order link</TableHead>
+                <TableHead className="text-center min-w-[120px]">View Preorder</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center text-stone-500">
+                  <TableCell colSpan={9} className="h-24 text-center text-stone-500">
                     Loading bookings...
                   </TableCell>
                 </TableRow>
@@ -366,7 +508,7 @@ function BookingsPage() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{booking.booking_date}</TableCell>
                     <TableCell className="hidden md:table-cell">{booking.booking_time}</TableCell>
-                    <TableCell className="hidden lg:table-cell">{booking.table_numbers}</TableCell>
+                    <TableCell className="hidden lg:table-cell text-center">{booking.table_numbers}</TableCell>
                     <TableCell className="hidden lg:table-cell text-center">{booking.number_of_people}</TableCell>
                     <TableCell className="hidden xl:table-cell">{booking.channel}</TableCell>
                     <TableCell className="text-center">
@@ -379,11 +521,25 @@ function BookingsPage() {
                         {copiedId === booking.id ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                       </Button>
                     </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        onClick={() => {
+                          setSelectedBooking(booking);
+                          setIsModalOpen(true);
+                          fetchPreOrders(booking.id);
+                        }}
+                        variant="outline"
+                        className="p-2 border-stone-200 hover:bg-stone-50"
+                        title="View preorder"
+                      >
+                        View Preorder
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center text-stone-500">
+                  <TableCell colSpan={9} className="h-24 text-center text-stone-500">
                     No bookings found for this date.
                   </TableCell>
                 </TableRow>
@@ -392,6 +548,59 @@ function BookingsPage() {
           </Table>
         </div>
       </div>
+
+      {/* Preorder Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Preorders for Booking {selectedBooking?.booking_reference}
+            </DialogTitle>
+            <DialogDescription>
+              View the preorders submitted for this booking.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            {loadingPreOrders ? (
+              <p className="text-center text-stone-500">Loading preorders...</p>
+            ) : preOrdersData.length === 0 ? (
+              <p className="text-center text-stone-500">
+                The customer has not yet made their preorder.
+              </p>
+            ) : (
+              preOrdersData.map((preOrder) => {
+                const allItems = preOrder.attendees.flatMap(attendee => attendee.pre_order_items);
+                return (
+                  <div key={preOrder.id} className="border rounded-lg p-4 bg-gray-50">
+                    <h3 className="font-semibold text-lg">{preOrder.name}</h3>
+                    <p className="text-sm text-stone-600">
+                      Submitted at: {format(new Date(preOrder.submitted_at), 'PPP p')}
+                    </p>
+                    {preOrder.customer_notes && (
+                      <p className="text-sm text-stone-600 mt-2">
+                        Notes: {preOrder.customer_notes}
+                      </p>
+                    )}
+                    <div className="mt-4">
+                      <h4 className="font-medium mb-2">Selected Dishes:</h4>
+                      <ul className="space-y-1">
+                        {allItems.map((item) => (
+                          <li key={item.id} className="text-sm">
+                            {item.quantity} x {item.menu_item.name}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsModalOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }

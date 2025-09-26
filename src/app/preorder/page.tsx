@@ -335,8 +335,27 @@ function PreOrderContent() {
         return;
       }
 
+      // Create attendee
+      const attendeeName = orderMode === 'individual' ? confirmOrderName : booking.customer_name;
+      const { data: attendeeData, error: attendeeError } = await supabase
+        .from('attendees')
+        .insert({
+          pre_order_id: preOrderData.id,
+          person_name: attendeeName
+        })
+        .select()
+        .single();
+
+      if (attendeeError) {
+        console.error('Error creating attendee:', attendeeError);
+        alert('Error creating attendee. Please try again.');
+        setSubmitting(false);
+        if (orderMode === 'group') setShowGroupModal(false); else setShowIndividualModal(false);
+        return;
+      }
+
       const preOrderItems = selectedItems.map(([menuItemId, quantity]) => ({
-        attendee_id: null,
+        attendee_id: attendeeData.id,
         menu_item_id: menuItemId,
         quantity
       }));
