@@ -67,25 +67,10 @@ function PreOrderContent() {
     const fetchBooking = async () => {
       const supabase = createClient();
 
+      // First, validate the token
       const { data: tokenData, error: tokenError } = await supabase
         .from('access_tokens')
-        .select(`
-          booking_id,
-          expires_at,
-          used,
-          bookings (
-            id,
-            booking_reference,
-            booking_date,
-            booking_time,
-            number_of_people,
-            customers (
-              customer_name,
-              customer_email,
-              customer_mobile
-            )
-          )
-        `)
+        .select('booking_id, expires_at, used')
         .eq('token', token)
         .single();
 
@@ -97,20 +82,37 @@ function PreOrderContent() {
 
       const now = new Date();
       const expiresAt = new Date(tokenData.expires_at);
-      if (now > expiresAt) {
+      if (now > expiresAt || tokenData.used) {
         setError('Access token has expired');
         setLoading(false);
         return;
       }
 
-      const bookingData = tokenData.bookings as unknown as {
-        id: string;
-        booking_reference: string;
-        booking_date: string;
-        booking_time: string;
-        number_of_people: number;
-        customers: { customer_name: string; customer_email: string; customer_mobile: string };
-      };
+      // Get booking data
+      const { data: bookingData, error: bookingError } = await supabase
+        .from('bookings')
+        .select('id, booking_reference, booking_date, booking_time, number_of_people, customer_id')
+        .eq('id', tokenData.booking_id)
+        .single();
+
+      if (bookingError || !bookingData) {
+        setError('Booking not found');
+        setLoading(false);
+        return;
+      }
+
+      // Get customer data
+      const { data: customerData, error: customerError } = await supabase
+        .from('customers')
+        .select('customer_name, customer_email, customer_mobile')
+        .eq('id', bookingData.customer_id)
+        .single();
+
+      if (customerError || !customerData) {
+        setError('Customer not found');
+        setLoading(false);
+        return;
+      }
 
       const transformedBooking: Booking = {
         id: bookingData.id,
@@ -118,9 +120,9 @@ function PreOrderContent() {
         booking_date: bookingData.booking_date,
         booking_time: bookingData.booking_time,
         number_of_people: bookingData.number_of_people,
-        customer_name: bookingData.customers.customer_name,
-        customer_email: bookingData.customers.customer_email,
-        customer_mobile: bookingData.customers.customer_mobile,
+        customer_name: customerData.customer_name,
+        customer_email: customerData.customer_email,
+        customer_mobile: customerData.customer_mobile,
       };
 
       setBooking(transformedBooking);
