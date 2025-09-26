@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import {
   Home,
   Utensils,
-  ClipboardList,
   LogOut,
-  Calendar
+  Calendar,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -26,12 +27,13 @@ import { useState } from 'react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
-  currentPage: 'dashboard' | 'menu' | 'pre-orders' | 'bookings';
+  currentPage: 'dashboard' | 'menu' | 'bookings';
 }
 
 export default function AdminLayout({ children, currentPage }: AdminLayoutProps) {
   const router = useRouter();
   const [showIdleModal, setShowIdleModal] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const performSignOut = async () => {
     const supabase = createClient();
@@ -62,39 +64,47 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
     { href: '/', label: 'Dashboard', icon: Home, key: 'dashboard' },
     { href: '/bookings', label: 'Bookings', icon: Calendar, key: 'bookings' },
     { href: '/menu', label: 'Menu', icon: Utensils, key: 'menu' },
-    { href: '/pre-orders', label: 'Pre-Orders', icon: ClipboardList, key: 'pre-orders' },
   ];
 
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg flex flex-col">
+      <div className={`bg-white shadow-lg flex flex-col relative ${isCollapsed ? 'w-18' : 'w-44'}`}>
         {/* Logo */}
-        <div className="p-6 border-b flex justify-center">
+        <div className={`border-b flex justify-center ${isCollapsed ? 'p-2' : 'p-6'}`}>
           <Image
-            src="/images/logo-black.webp"
+            src="https://res.cloudinary.com/dycdigital/image/upload/v1758807509/logo-black_fgjop4.png"
             alt="La Taberna Logo"
-            width={150}
-            height={150}
-            className="h-22 w-auto"
+            width={isCollapsed ? 50 : 150}
+            height={isCollapsed ? 50 : 150}
+            className="h-full w-auto md:h-auto md:w-[80px]"
           />
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4">
+        <nav className={`flex-1 ${isCollapsed ? 'p-2' : 'p-4'}`}>
+          <div className={`${isCollapsed ? 'flex justify-center mb-2' : 'mb-4'}`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+            >
+              {isCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+            </Button>
+          </div>
           <ul className="space-y-2">
             {navItems.map((item) => (
               <li key={item.key}>
                 <Link
                   href={item.href}
-                  className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                  className={`flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-4'} py-2 rounded-lg transition-colors ${
                     currentPage === item.key
-                      ? 'bg-blue-100 text-blue-700'
+                      ? 'bg-gray-900 text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <item.icon className="w-5 h-5 mr-3" />
-                  {item.label}
+                  <item.icon className={`w-5 h-5 ${isCollapsed ? '' : 'mr-3'}`} />
+                  {!isCollapsed && item.label}
                 </Link>
               </li>
             ))}
@@ -102,14 +112,14 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
         </nav>
 
         {/* Sign Out */}
-        <div className="p-4 border-t">
+        <div className={`${isCollapsed ? 'p-2' : 'p-4'} border-t`}>
           <Button
             variant="outline"
             onClick={handleSignOut}
-            className="w-full justify-start"
+            className={`${isCollapsed ? 'w-auto justify-center' : 'w-full justify-start'}`}
           >
             <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
+            {!isCollapsed && 'Sign Out'}
           </Button>
         </div>
       </div>
