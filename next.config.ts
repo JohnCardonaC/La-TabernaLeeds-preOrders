@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  hostname: 'localhost',
   outputFileTracingRoot: __dirname,
   serverExternalPackages: ['@supabase/supabase-js'],
   generateBuildId: async () => {

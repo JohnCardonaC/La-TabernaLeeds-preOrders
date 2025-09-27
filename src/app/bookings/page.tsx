@@ -56,6 +56,7 @@ type Booking = {
   number_of_people: number;
   channel: string;
   preorder_url: string;
+  notification_log: any[];
 };
 
 type RawBooking = {
@@ -157,6 +158,8 @@ function BookingsPage() {
   const [hasPreOrders, setHasPreOrders] = useState<Set<string>>(new Set());
   const [selectedChannel, setSelectedChannel] = useState<string>('All');
   const [selectedTableSize, setSelectedTableSize] = useState<string>('All');
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [selectedBookingForLog, setSelectedBookingForLog] = useState<Booking | null>(null);
 
   const staticRanges = [
     {
@@ -242,6 +245,7 @@ function BookingsPage() {
           number_of_people,
           channel,
           preorder_url,
+          notification_log,
           customers (
             customer_name,
             customer_email,
@@ -273,6 +277,7 @@ function BookingsPage() {
         number_of_people: booking.number_of_people,
         channel: booking.channel,
         preorder_url: booking.preorder_url,
+        notification_log: booking.notification_log || [],
       }));
 
       // Filter by selected date range if provided
@@ -613,14 +618,15 @@ function BookingsPage() {
                 </TableHead>
                 <TableHead className="hidden lg:table-cell text-center min-w-[100px]"># of People</TableHead>
                 <TableHead className="hidden xl:table-cell min-w-[100px]">Channel</TableHead>
-                <TableHead className="text-center min-w-[120px]">Pre-order link</TableHead>
-                <TableHead className="text-center min-w-[120px]">View Preorder</TableHead>
+                <TableHead className="text-center w-[40px]">Pre-order<br />link</TableHead>
+                <TableHead className="text-center w-[40px]">View<br />Preorder</TableHead>
+                <TableHead className="text-center w-[40px]">Notification<br />Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center text-stone-500">
+                  <TableCell colSpan={10} className="h-24 text-center text-stone-500">
                     Loading bookings...
                   </TableCell>
                 </TableRow>
@@ -649,10 +655,10 @@ function BookingsPage() {
                       <Button
                         onClick={() => window.open(booking.preorder_url, '_blank')}
                         variant="outline"
-                        className="px-2 py-1 text-xs border-stone-200 hover:bg-stone-50"
+                        className="px-5 py-5 text-xs border-stone-200 hover:bg-stone-50"
                         title="Go to preorder page"
                       >
-                        Go to preorder link
+                        Preorder<br />link
                       </Button>
                     </TableCell>
                     <TableCell className="text-center">
@@ -663,17 +669,30 @@ function BookingsPage() {
                           fetchPreOrders(booking.id);
                         }}
                         variant="outline"
-                        className={`px-2 py-1 text-xs border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
+                        className={`px-5 py-5 text-xs border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
                         title="View preorder"
                       >
-                        View Preorder
+                        View<br />Preorder
+                      </Button>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        onClick={() => {
+                          setSelectedBookingForLog(booking);
+                          setIsLogModalOpen(true);
+                        }}
+                        variant="outline"
+                        className="px-2 py-1 text-xs border-stone-200 hover:bg-stone-50"
+                        title="View notification log"
+                      >
+                        View
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center text-stone-500">
+                  <TableCell colSpan={10} className="h-24 text-center text-stone-500">
                     No bookings found for this date.
                   </TableCell>
                 </TableRow>
@@ -703,6 +722,17 @@ function BookingsPage() {
                     <div><strong>People:</strong> {booking.number_of_people}</div>
                     <div><strong>Channel:</strong> {booking.channel}</div>
                     <div className="flex flex-col gap-1 mt-4">
+                      <Button
+                        onClick={() => {
+                          setSelectedBookingForLog(booking);
+                          setIsLogModalOpen(true);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        title="View notification log"
+                      >
+                        View<br />Notification<br />Log
+                      </Button>
                       <Button
                         onClick={() => window.open(booking.preorder_url, '_blank')}
                         variant="outline"
@@ -790,6 +820,49 @@ function BookingsPage() {
           </div>
           <DialogFooter>
             <Button onClick={() => setIsModalOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Notification Log Modal */}
+      <Dialog open={isLogModalOpen} onOpenChange={setIsLogModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Notification Log for Booking {selectedBookingForLog?.booking_reference}
+            </DialogTitle>
+            <DialogDescription>
+              History of email notification attempts for this booking.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedBookingForLog?.notification_log && selectedBookingForLog.notification_log.length > 0 ? (
+              selectedBookingForLog.notification_log.map((log: any, index: number) => (
+                <Card key={index} className="p-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        log.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {log.success ? 'Success' : 'Failed'}
+                      </span>
+                      <span className="text-sm text-gray-600">{log.method}</span>
+                    </div>
+                    <div><strong>Timestamp:</strong> {format(new Date(log.timestamp), 'PPP p')}</div>
+                    <div><strong>Email:</strong> {log.email}</div>
+                    <div><strong>Preorder URL:</strong> <a href={log.preorder_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{log.preorder_url}</a></div>
+                    {log.error && (
+                      <div><strong>Error:</strong> <span className="text-red-600">{log.error}</span></div>
+                    )}
+                  </div>
+                </Card>
+              ))
+            ) : (
+              <p className="text-center text-stone-500">No notification attempts recorded yet.</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsLogModalOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

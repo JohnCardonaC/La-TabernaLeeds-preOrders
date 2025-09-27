@@ -46,6 +46,8 @@ Deno.serve(async (req) => {
       throw new Error('Missing booking_reference, customer_id, or id')
     }
 
+    let logEntry: any = null
+
     // Rate limiting: máximo 1 email por cliente cada 5 minutos
     const rateLimitKey = `email_${customerId}`
     if (checkRateLimit(rateLimitKey, 300)) { // 300 segundos = 5 minutos
@@ -118,6 +120,16 @@ Deno.serve(async (req) => {
       throw new Error('Invalid RESEND_API_KEY format')
     }
 
+    // Prepare notification log entry
+    logEntry = {
+      timestamp: new Date().toISOString(),
+      success: false,
+      method: 'automatic',
+      email: customerEmail,
+      preorder_url: preorderUrl,
+      error: null as string | null
+    }
+
     // Send email with Resend
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -143,6 +155,9 @@ Deno.serve(async (req) => {
       throw new Error(`Resend API error: ${errorText}`)
     }
 
+    // Mark log entry as successful
+    logEntry.success = true
+
     // Update preorder_url in bookings
     const { error: updateError } = await supabase
       .from('bookings')
@@ -154,6 +169,18 @@ Deno.serve(async (req) => {
       // No throw, email was sent successfully
     }
 
+    // Update notification_log
+    const { error: logUpdateError } = await supabase
+      .from('bookings')
+      .update({
+        notification_log: supabase.sql`notification_log || ${JSON.stringify([logEntry])}::jsonb`
+      })
+      .eq('id', bookingId)
+
+    if (logUpdateError) {
+      console.error('Failed to update notification_log:', logUpdateError.message)
+    }
+
     console.log(`Email sent successfully to ${customerEmail} for booking ${bookingReference}`)
 
     return new Response(
@@ -161,9 +188,26 @@ Deno.serve(async (req) => {
       { headers: { "Content-Type": "application/json" } }
     )
   } catch (error) {
-    console.error('Error in send-preorder-email:', error.message)
+    console.error('Error in send-preorder-email:', (error as Error).message)
+
+    // Log the error in notification_log if logEntry exists
+    if (logEntry) {
+      logEntry.success = false
+      logEntry.error = (error as Error).message
+      const { error: logError } = await supabase
+        .from('bookings')
+        .update({
+          notification_log: supabase.sql`notification_log || ${JSON.stringify([logEntry])}::jsonb`
+        })
+        .eq('id', bookingId)
+
+      if (logError) {
+        console.error('Failed to update notification_log on error:', logError.message)
+      }
+    }
+
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     )
   }
