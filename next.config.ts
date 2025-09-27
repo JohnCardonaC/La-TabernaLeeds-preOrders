@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  hostname: 'localhost',
   outputFileTracingRoot: __dirname,
   serverExternalPackages: ['@supabase/supabase-js'],
   generateBuildId: async () => {
@@ -11,15 +10,15 @@ const nextConfig: NextConfig = {
     unoptimized: true,
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3000',
-      },
-      {
-        protocol: 'https',
-        hostname: 'localhost',
-        port: '3000',
-      },
+          protocol: 'http',
+          hostname: '192.168.68.105',
+          port: '3000',
+        },
+        {
+          protocol: 'https',
+          hostname: '192.168.68.105',
+          port: '3000',
+        },
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
@@ -29,3 +28,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+

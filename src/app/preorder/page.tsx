@@ -46,11 +46,8 @@ function PreOrderContent() {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [tempQuantities, setTempQuantities] = useState<Record<string, number>>({});
-  const [customerNotes, setCustomerNotes] = useState('');
-  const [orderName, setOrderName] = useState('');
   const [orderMode, setOrderMode] = useState<'individual' | 'group' | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [shareLink, setShareLink] = useState('');
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
   const [showGroupModal, setShowGroupModal] = useState(false);
@@ -126,7 +123,6 @@ function PreOrderContent() {
       };
 
       setBooking(transformedBooking);
-      setCurrentToken(token);
       setLoading(false);
     };
 
@@ -208,7 +204,7 @@ function PreOrderContent() {
     try {
       await navigator.clipboard.writeText(shareLink);
       toast.success('Link copied to clipboard!');
-    } catch (err) {
+    } catch {
       toast.error('Failed to copy link. Please copy it manually.');
     }
   };

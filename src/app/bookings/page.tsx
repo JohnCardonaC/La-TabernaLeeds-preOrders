@@ -2,17 +2,15 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { format, startOfDay, endOfDay, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, addWeeks, addMonths, addYears, parse } from 'date-fns';
+import { format, startOfDay, endOfDay, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, addWeeks, addMonths, parse } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
-import { Calendar as CalendarIcon, Copy, CheckCircle, Printer } from 'lucide-react';
+import { Calendar as CalendarIcon, Printer } from 'lucide-react';
 import { DateRangePicker, Range } from 'react-date-range';
 import 'react-date-range/dist/styles.css'; // main css file
 import 'react-date-range/dist/theme/default.css'; // theme css file
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Input } from '@/components/ui/input';
 import {
   Popover,
   PopoverContent,
@@ -43,6 +41,15 @@ import {
 import AdminLayout from '@/components/AdminLayout';
 import { createClient } from '@/lib/supabase/client';
 
+type NotificationLogEntry = {
+  timestamp: string;
+  success: boolean;
+  method: string;
+  email: string;
+  preorder_url: string;
+  error?: string | null;
+};
+
 type Booking = {
   id: string;
   created_at: string;
@@ -56,23 +63,7 @@ type Booking = {
   number_of_people: number;
   channel: string;
   preorder_url: string;
-  notification_log: any[];
-};
-
-type RawBooking = {
-  id: string;
-  created_at: string;
-  booking_reference: string;
-  booking_date: string;
-  booking_time: string;
-  table_numbers: string;
-  number_of_people: number;
-  channel: string;
-  customers: {
-    customer_name: string;
-    customer_email: string;
-    customer_mobile: string;
-  } | null;
+  notification_log: NotificationLogEntry[];
 };
 
 type PreOrder = {
@@ -136,9 +127,6 @@ type RawMenuItem = {
 };
 
 function BookingsPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   const londonNow = toZonedTime(new Date(), 'Europe/London');
   const [ranges, setRanges] = useState<Range[]>([
     {
@@ -148,7 +136,6 @@ function BookingsPage() {
     },
   ]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [copiedId, setCopied] = useState<string | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -320,28 +307,6 @@ function BookingsPage() {
     fetchBookings();
   }, [ranges, selectedChannel, selectedTableSize]);
 
-  const handleCopyLink = async (bookingId: string) => {
-    try {
-      const supabase = createClient();
-      const { data: tokenData, error } = await supabase
-        .from('access_tokens')
-        .select('token')
-        .eq('booking_id', bookingId)
-        .single();
-
-      if (error || !tokenData) {
-        alert('Token not found. Make sure the booking exists and tokens are generated.');
-        return;
-      }
-
-      const link = `${window.location.origin}/preorder?token=${tokenData.token}`;
-      await navigator.clipboard.writeText(link);
-      setCopied(bookingId);
-      setTimeout(() => setCopied(null), 2000);
-    } catch (err) {
-      alert('Failed to copy link to clipboard.');
-    }
-  };
 
   const handlePrint = () => {
     // Consolidate items
@@ -839,7 +804,7 @@ function BookingsPage() {
           </DialogHeader>
           <div className="space-y-4">
             {selectedBookingForLog?.notification_log && selectedBookingForLog.notification_log.length > 0 ? (
-              selectedBookingForLog.notification_log.map((log: any, index: number) => (
+              selectedBookingForLog.notification_log.map((log: NotificationLogEntry, index: number) => (
                 <Card key={index} className="p-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">

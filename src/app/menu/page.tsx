@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 export const dynamic = 'force-dynamic';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -91,11 +90,6 @@ export default function MenuPage() {
 
     checkAuthAndFetch();
   }, [supabase, router]);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
