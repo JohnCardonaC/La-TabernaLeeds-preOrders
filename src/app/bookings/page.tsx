@@ -721,26 +721,7 @@ function BookingsPage() {
                     <div><strong>Table:</strong> {booking.table_numbers}</div>
                     <div><strong>People:</strong> {booking.number_of_people}</div>
                     <div><strong>Channel:</strong> {booking.channel}</div>
-                    <div className="flex flex-col gap-1 mt-4">
-                      <Button
-                        onClick={() => {
-                          setSelectedBookingForLog(booking);
-                          setIsLogModalOpen(true);
-                        }}
-                        variant="outline"
-                        size="sm"
-                        title="View notification log"
-                      >
-                        View<br />Notification<br />Log
-                      </Button>
-                      <Button
-                        onClick={() => window.open(booking.preorder_url, '_blank')}
-                        variant="outline"
-                        size="sm"
-                        title="Go to preorder page"
-                      >
-                        Go to preorder link
-                      </Button>
+                    <div className="flex flex-col gap-2 mt-4">
                       <Button
                         onClick={() => {
                           setSelectedBooking(booking);
@@ -749,10 +730,31 @@ function BookingsPage() {
                         }}
                         variant="outline"
                         size="sm"
-                        className={`px-2 py-1 text-xs border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
+                        className={`px-2 py-2 text-xs border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
                         title="View preorder"
                       >
                         View Preorder
+                      </Button>
+                      <Button
+                        onClick={() => window.open(booking.preorder_url, '_blank')}
+                        variant="outline"
+                        size="sm"
+                        className="py-2 text-xs"
+                        title="Go to preorder page"
+                      >
+                        Go to preorder link
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setSelectedBookingForLog(booking);
+                          setIsLogModalOpen(true);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="py-2 text-xs"
+                        title="View notification log"
+                      >
+                        Notification status
                       </Button>
                     </div>
                   </div>
