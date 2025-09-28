@@ -585,13 +585,12 @@ function BookingsPage() {
                 <TableHead className="hidden xl:table-cell min-w-[100px]">Channel</TableHead>
                 <TableHead className="text-center w-[40px]">Pre-order<br />link</TableHead>
                 <TableHead className="text-center w-[40px]">View<br />Preorder</TableHead>
-                <TableHead className="text-center w-[40px]">Notification<br />Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="h-24 text-center text-stone-500">
+                  <TableCell colSpan={9} className="h-24 text-center text-stone-500">
                     Loading bookings...
                   </TableCell>
                 </TableRow>
@@ -641,23 +640,12 @@ function BookingsPage() {
                       </Button>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        onClick={() => {
-                          setSelectedBookingForLog(booking);
-                          setIsLogModalOpen(true);
-                        }}
-                        variant="outline"
-                        className="px-2 py-1 text-xs border-stone-200 hover:bg-stone-50"
-                        title="View notification log"
-                      >
-                        View
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={10} className="h-24 text-center text-stone-500">
+                  <TableCell colSpan={9} className="h-24 text-center text-stone-500">
                     No bookings found for this date.
                   </TableCell>
                 </TableRow>
@@ -708,18 +696,6 @@ function BookingsPage() {
                         title="Go to preorder page"
                       >
                         Go to preorder link
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setSelectedBookingForLog(booking);
-                          setIsLogModalOpen(true);
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="py-2 text-xs"
-                        title="View notification log"
-                      >
-                        Notification status
                       </Button>
                     </div>
                   </div>

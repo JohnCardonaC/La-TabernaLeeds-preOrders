@@ -12,7 +12,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Menu,
-  X
+  X,
+  Settings
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -29,7 +30,7 @@ import { useState } from 'react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
-  currentPage: 'dashboard' | 'menu' | 'bookings';
+  currentPage: 'dashboard' | 'menu' | 'bookings' | 'settings';
 }
 
 export default function AdminLayout({ children, currentPage }: AdminLayoutProps) {
@@ -67,6 +68,7 @@ export default function AdminLayout({ children, currentPage }: AdminLayoutProps)
     { href: '/', label: 'Dashboard', icon: Home, key: 'dashboard' },
     { href: '/bookings', label: 'Bookings', icon: Calendar, key: 'bookings' },
     { href: '/menu', label: 'Menu', icon: Utensils, key: 'menu' },
+    { href: '/settings', label: 'Settings', icon: Settings, key: 'settings' },
   ];
 
   return (

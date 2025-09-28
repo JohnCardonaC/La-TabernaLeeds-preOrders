@@ -41,12 +41,43 @@ Deno.serve(async (req) => {
     const bookingReference = record.booking_reference
     const customerId = record.customer_id
     const bookingId = record.id
+    const numberOfPeople = record.number_of_people
 
     if (!bookingReference || !customerId || !bookingId) {
       throw new Error('Missing booking_reference, customer_id, or id')
     }
 
+    // Check if this booking qualifies for pre-order emails
+    const { data: settings } = await supabase
+      .from('preorders_settings')
+      .select('min_large_table_size')
+      .single()
+
+    if (!settings) {
+      throw new Error('Pre-order settings not found')
+    }
+
+    const minLargeTableSize = settings.min_large_table_size
+
+    // Skip email if booking doesn't meet minimum size requirement
+    if (numberOfPeople < minLargeTableSize) {
+      console.log(`Booking ${bookingReference} has ${numberOfPeople} people, minimum is ${minLargeTableSize}. Skipping email.`)
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: `Booking skipped - only ${numberOfPeople} people, minimum ${minLargeTableSize} required`
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      )
+    }
+
     let logEntry: any = null
+
+    // Initialize Supabase client
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '' // Cambiar ANON_KEY por SERVICE_ROLE_KEY
+    )
 
     // Rate limiting: máximo 1 email por cliente cada 5 minutos
     const rateLimitKey = `email_${customerId}`
@@ -57,12 +88,6 @@ Deno.serve(async (req) => {
         { headers: { "Content-Type": "application/json" } }
       )
     }
-
-    // Initialize Supabase client
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '' // Cambiar ANON_KEY por SERVICE_ROLE_KEY
-    )
 
     // Query customer email
     const { data: customer, error: customerError } = await supabase
