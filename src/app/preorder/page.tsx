@@ -315,6 +315,15 @@ function PreOrderContent() {
 
       const preOrderName = orderMode === 'individual' ? confirmOrderName : booking.customer_name;
 
+      // Validación adicional de datos
+      if (!booking.id || !preOrderName || !orderMode) {
+        throw new Error('Missing required data: booking_id, name, or order_mode');
+      }
+
+      if (!['individual', 'group'].includes(orderMode)) {
+        throw new Error('Invalid order_mode. Must be "individual" or "group"');
+      }
+
       const { data: preOrderData, error: preOrderError } = await supabase
         .from('pre_orders')
         .insert({
@@ -327,7 +336,12 @@ function PreOrderContent() {
 
       if (preOrderError) {
         console.error('Error creating pre-order:', preOrderError);
-        alert('Error submitting pre-order. Please try again.');
+        console.error('Pre-order data being sent:', {
+          booking_id: booking.id,
+          name: preOrderName,
+          order_mode: orderMode
+        });
+        toast.error(`Error creating pre-order: ${preOrderError.message}`);
         setSubmitting(false);
         if (orderMode === 'group') setShowGroupModal(false); else setShowIndividualModal(false);
         return;
@@ -346,7 +360,7 @@ function PreOrderContent() {
 
       if (attendeeError) {
         console.error('Error creating attendee:', attendeeError);
-        alert('Error creating attendee. Please try again.');
+        toast.error(`Error creating attendee: ${attendeeError.message}`);
         setSubmitting(false);
         if (orderMode === 'group') setShowGroupModal(false); else setShowIndividualModal(false);
         return;
@@ -364,7 +378,7 @@ function PreOrderContent() {
 
       if (itemsError) {
         console.error('Error creating pre-order items:', itemsError);
-        alert('Error submitting pre-order items. Please try again.');
+        toast.error(`Error creating pre-order items: ${itemsError.message}`);
         setSubmitting(false);
         if (orderMode === 'group') setShowGroupModal(false); else setShowIndividualModal(false);
         return;
@@ -375,7 +389,7 @@ function PreOrderContent() {
 
     } catch (error) {
       console.error('Error submitting pre-order:', error);
-      alert('Error submitting pre-order. Please try again.');
+      toast.error(`Error submitting pre-order: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setSubmitting(false);
       if (orderMode === 'group') setShowGroupModal(false); else setShowIndividualModal(false);
     }
