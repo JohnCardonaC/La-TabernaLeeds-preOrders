@@ -147,6 +147,7 @@ function BookingsPage() {
   const [selectedTableSize, setSelectedTableSize] = useState<string>('All');
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [selectedBookingForLog, setSelectedBookingForLog] = useState<Booking | null>(null);
+  const [minLargeTableSize, setMinLargeTableSize] = useState<number>(6);
 
   const staticRanges = [
     {
@@ -285,9 +286,9 @@ function BookingsPage() {
 
       // Filter by table size
       if (selectedTableSize === 'Large') {
-        transformedBookings = transformedBookings.filter(booking => booking.number_of_people >= 6);
+        transformedBookings = transformedBookings.filter(booking => booking.number_of_people >= minLargeTableSize);
       } else if (selectedTableSize === 'Small') {
-        transformedBookings = transformedBookings.filter(booking => booking.number_of_people < 6);
+        transformedBookings = transformedBookings.filter(booking => booking.number_of_people < minLargeTableSize);
       }
 
       setBookings(transformedBookings);
@@ -305,7 +306,23 @@ function BookingsPage() {
     };
 
     fetchBookings();
+    fetchSettings();
   }, [ranges, selectedChannel, selectedTableSize]);
+
+  const fetchSettings = async () => {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from('preorders_settings')
+      .select('min_large_table_size')
+      .single();
+
+    if (error) {
+      console.error('Error fetching settings:', error);
+    } else if (data) {
+      setMinLargeTableSize(data.min_large_table_size);
+    }
+  };
 
 
   const handlePrint = () => {
@@ -551,8 +568,8 @@ function BookingsPage() {
                 className="w-full px-3 py-2 border border-stone-200 rounded-md bg-white text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-500"
               >
                 <option value="All">All Tables</option>
-                <option value="Large">Large Tables (6+ people)</option>
-                <option value="Small">Small Tables (less than 6 people)</option>
+                <option value="Large">Large Tables ({minLargeTableSize}+ people)</option>
+                <option value="Small">Small Tables (less than {minLargeTableSize} people)</option>
               </select>
             </div>
           </div>
@@ -583,8 +600,8 @@ function BookingsPage() {
                 </TableHead>
                 <TableHead className="hidden lg:table-cell text-center min-w-[100px]"># of People</TableHead>
                 <TableHead className="hidden xl:table-cell min-w-[100px]">Channel</TableHead>
-                <TableHead className="text-center w-[40px]">Pre-order<br />link</TableHead>
-                <TableHead className="text-center w-[40px]">View<br />Preorder</TableHead>
+                <TableHead className="text-center w-[120px]">Pre-order<br />link</TableHead>
+                <TableHead className="text-center w-[120px]">View<br />Preorder</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -613,31 +630,46 @@ function BookingsPage() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{booking.booking_time}</TableCell>
                     <TableCell className="hidden lg:table-cell text-center">{booking.table_numbers}</TableCell>
-                    <TableCell className="hidden lg:table-cell text-center">{booking.number_of_people}</TableCell>
+                    <TableCell className="hidden lg:table-cell text-center">
+                      <div>
+                        <div className="text-lg font-semibold">{booking.number_of_people}</div>
+                        <div className={`text-xs ${booking.number_of_people >= minLargeTableSize ? 'text-green-600' : 'text-orange-600'}`}>
+                          {booking.number_of_people >= minLargeTableSize ? 'Large table' : 'Small table'}
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell className="hidden xl:table-cell">{booking.channel}</TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        onClick={() => window.open(booking.preorder_url, '_blank')}
-                        variant="outline"
-                        className="px-5 py-5 text-xs border-stone-200 hover:bg-stone-50"
-                        title="Go to preorder page"
-                      >
-                        Preorder<br />link
-                      </Button>
+                      {booking.number_of_people >= minLargeTableSize ? (
+                        <Button
+                          onClick={() => window.open(booking.preorder_url, '_blank')}
+                          variant="outline"
+                          className="px-5 py-5 text-xs border-stone-200 hover:bg-stone-50"
+                          title="Go to preorder page"
+                        >
+                          Preorder<br />link
+                        </Button>
+                      ) : (
+                        <span className="text-sm text-gray-500">N/A</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        onClick={() => {
-                          setSelectedBooking(booking);
-                          setIsModalOpen(true);
-                          fetchPreOrders(booking.id);
-                        }}
-                        variant="outline"
-                        className={`px-5 py-5 text-xs border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
-                        title="View preorder"
-                      >
-                        View<br />Preorder
-                      </Button>
+                      {booking.number_of_people >= minLargeTableSize ? (
+                        <Button
+                          onClick={() => {
+                            setSelectedBooking(booking);
+                            setIsModalOpen(true);
+                            fetchPreOrders(booking.id);
+                          }}
+                          variant="outline"
+                          className={`px-5 py-5 text-xs border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
+                          title="View preorder"
+                        >
+                          View<br />Preorder
+                        </Button>
+                      ) : (
+                        <span className="text-sm text-gray-500">N/A</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-center">
                     </TableCell>
@@ -675,28 +707,34 @@ function BookingsPage() {
                     <div><strong>People:</strong> {booking.number_of_people}</div>
                     <div><strong>Channel:</strong> {booking.channel}</div>
                     <div className="flex flex-col gap-2 mt-4">
-                      <Button
-                        onClick={() => {
-                          setSelectedBooking(booking);
-                          setIsModalOpen(true);
-                          fetchPreOrders(booking.id);
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className={`px-2 py-2 text-xs border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
-                        title="View preorder"
-                      >
-                        View Preorder
-                      </Button>
-                      <Button
-                        onClick={() => window.open(booking.preorder_url, '_blank')}
-                        variant="outline"
-                        size="sm"
-                        className="py-2 text-xs"
-                        title="Go to preorder page"
-                      >
-                        Go to preorder link
-                      </Button>
+                      {booking.number_of_people >= minLargeTableSize ? (
+                        <>
+                          <Button
+                            onClick={() => {
+                              setSelectedBooking(booking);
+                              setIsModalOpen(true);
+                              fetchPreOrders(booking.id);
+                            }}
+                            variant="outline"
+                            size="sm"
+                            className={`px-2 py-2 text-xs border-stone-200 hover:bg-stone-50 ${hasPreOrders.has(booking.id) ? 'bg-[#def8e6]' : ''}`}
+                            title="View preorder"
+                          >
+                            View Preorder
+                          </Button>
+                          <Button
+                            onClick={() => window.open(booking.preorder_url, '_blank')}
+                            variant="outline"
+                            size="sm"
+                            className="py-2 text-xs"
+                            title="Go to preorder page"
+                          >
+                            Go to preorder link
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="text-sm text-gray-500 text-center py-2">N/A</span>
+                      )}
                     </div>
                   </div>
                 </CardContent>
