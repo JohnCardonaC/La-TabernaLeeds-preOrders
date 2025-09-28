@@ -101,14 +101,34 @@ export default function SettingsPage() {
               <p className="text-sm text-stone-600">
                 Bookings with this number of people or more will receive pre-order email invitations.
               </p>
-              <Input
-                id="minLargeTableSize"
-                type="number"
-                min="1"
-                value={minLargeTableSize}
-                onChange={(e) => setMinLargeTableSize(parseInt(e.target.value) || 1)}
-                className="w-full max-w-xs"
-              />
+              <div className="flex items-center space-x-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMinLargeTableSize(Math.max(1, minLargeTableSize - 1))}
+                  className="px-3 py-2 h-10 w-10 p-0"
+                >
+                  −
+                </Button>
+                <Input
+                  id="minLargeTableSize"
+                  type="number"
+                  min="1"
+                  value={minLargeTableSize}
+                  onChange={(e) => setMinLargeTableSize(parseInt(e.target.value) || 1)}
+                  className="w-20 text-center"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMinLargeTableSize(minLargeTableSize + 1)}
+                  className="px-3 py-2 h-10 w-10 p-0"
+                >
+                  +
+                </Button>
+              </div>
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t">
