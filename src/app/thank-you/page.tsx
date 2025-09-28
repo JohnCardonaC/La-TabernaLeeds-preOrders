@@ -33,7 +33,7 @@ export default function ThankYouPage() {
             If you need to make any changes to your order, please contact us directly.
           </p>
 
-          <Link href="/" className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors inline-block text-center">
+          <Link href="https://latabernaleeds.com" className="w-full bg-[#101828] text-white py-2 px-4 rounded-lg hover:bg-[#101828] transition-colors inline-block text-center">
             Return to Home
           </Link>
         </div>
