@@ -64,6 +64,7 @@ type Booking = {
   channel: string;
   preorder_url: string;
   notification_log: NotificationLogEntry[];
+  booking_status: string;
 };
 
 type PreOrder = {
@@ -234,6 +235,7 @@ function BookingsPage() {
           channel,
           preorder_url,
           notification_log,
+          booking_status,
           customers (
             customer_name,
             customer_email,
@@ -266,6 +268,7 @@ function BookingsPage() {
         channel: booking.channel,
         preorder_url: booking.preorder_url,
         notification_log: booking.notification_log || [],
+        booking_status: booking.booking_status || 'active',
       }));
 
       // Filter by selected date range if provided
@@ -614,7 +617,19 @@ function BookingsPage() {
               ) : bookings && bookings.length > 0 ? (
                 bookings.map((booking) => (
                   <TableRow key={booking.id}>
-                    <TableCell className="font-medium">{booking.booking_reference}</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="font-medium">{booking.booking_reference}</div>
+                        <div className={`text-ms py-1 rounded-full {
+                          booking.booking_status === 'active' ? 'bg-gray-100 text-green-800' :
+                          booking.booking_status === 'modified' ? 'bg-gray-100 text-yellow-800' :
+                          booking.booking_status === 'cancelled' ? 'bg-red-700 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {booking.booking_status}
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <div className="text-sm md:text-base">{booking.customer_name}</div>
