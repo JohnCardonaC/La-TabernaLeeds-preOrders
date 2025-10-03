@@ -11,6 +11,7 @@ export function useIdleTimeout(timeoutMs: number, onTimeout: () => void) {
  // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [timeoutMs, onTimeout]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
 
