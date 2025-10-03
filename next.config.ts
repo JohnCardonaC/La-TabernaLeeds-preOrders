@@ -11,12 +11,12 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
           protocol: 'http',
-          hostname: '192.168.68.105',
+          hostname: '192.168.68.108',
           port: '3000',
         },
         {
           protocol: 'https',
-          hostname: '192.168.68.105',
+          hostname: '192.168.68.108',
           port: '3000',
         },
       {

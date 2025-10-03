@@ -200,14 +200,6 @@ function PreOrderContent() {
     return indexA - indexB;
   });
 
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(shareLink);
-      toast.success('Link copied to clipboard!');
-    } catch {
-      toast.error('Failed to copy link. Please copy it manually.');
-    }
-  };
 
   if (loading) {
     return (
@@ -401,32 +393,32 @@ function PreOrderContent() {
       <div className="min-h-screen bg-gray-50 flex flex-col md:items-center md:justify-center pt-12 md:pt-0 py-8 px-4 space-y-8">
         
         <Card className="w-full max-w-2xl">
-           <Image
+          {/*  <Image
                 src="https://res.cloudinary.com/dycdigital/image/upload/v1758807509/logo-black_fgjop4.png"
                 alt="La Taberna"
-                width={60}
-                height={60}
+                width={90}
+                height={90}
                 className="mx-auto"
-              />
+              /> */}
           <CardHeader>
-            <CardTitle className="text-lg p-4">
+           {/*  <CardTitle className="text-lg p-4">
               How would you like to place your pre-order?
-            </CardTitle>
-            <CardDescription>
+            </CardTitle> */}
+            {/* <CardDescription>
               Choose the option that best fits your situation.
-            </CardDescription>
+            </CardDescription> */}
           </CardHeader>
 
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4 p-4">
               <Button
                 onClick={() => setOrderMode('group')}
-                className="cursor-pointer h-45 md:h-50  p-4 text-sm font-medium bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-md shadow-sm transition-all duration-200"
+                className="cursor-pointer h-45 md:h-50 mx-auto p-0 text-sm font-medium bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-md shadow-sm transition-all duration-200"
                 variant="ghost"
               >
                 <div className="text-center">
                   <div className="text-base font-semibold mb-1 break-words px-6text-xl">
-                    Click here to Group pre-order
+                    Click here to start the Group pre-order
                   </div>
                   <div className="mt-3 text-sm  px-6 whitespace-normal break-words font-normal">
                     You decide and confirm the meals for the entire group.
@@ -434,7 +426,7 @@ function PreOrderContent() {
                 </div>
               </Button>
 
-              <Button
+              {/* <Button
                 onClick={() => setOrderMode('individual')}
                 className="cursor-pointer h-45 md:h-50 text-sm font-medium bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-md shadow-sm transition-all duration-200"
                 variant="ghost"
@@ -448,10 +440,10 @@ function PreOrderContent() {
                     other guests so they can do the same.
                   </div>
                 </div>
-              </Button>
+              </Button> */}
             </div>
 
-            <div className="mt-6 space-y-2">
+            {/* <div className="mt-6 space-y-2">
               <Label
                 htmlFor="shareLink"
                 className="block text-sm font-medium text-gray-700"
@@ -474,7 +466,7 @@ function PreOrderContent() {
                   Copy
                 </Button>
               </div>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </div>
