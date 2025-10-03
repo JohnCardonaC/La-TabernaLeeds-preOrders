@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 
 export function useIdleTimeout(timeoutMs: number, onTimeout: () => void) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
