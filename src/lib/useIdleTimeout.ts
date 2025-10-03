@@ -8,14 +8,17 @@ export function useIdleTimeout(timeoutMs: number, onTimeout: () => void) {
       clearTimeout(timeoutRef.current);
     }
     timeoutRef.current = setTimeout(onTimeout, timeoutMs);
- // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [timeoutMs, onTimeout]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
 
-    const handleActivity = () => resetTimer();
+    const handleActivity = () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(onTimeout, timeoutMs);
+    };
 
     // Add event listeners
     events.forEach(event => {
@@ -23,7 +26,7 @@ export function useIdleTimeout(timeoutMs: number, onTimeout: () => void) {
     });
 
     // Start the timer
-    resetTimer();
+    timeoutRef.current = setTimeout(onTimeout, timeoutMs);
 
     // Cleanup
     return () => {

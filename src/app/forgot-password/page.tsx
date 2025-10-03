@@ -57,12 +57,12 @@ if (emailSent) {
           <CardHeader>
             <CardTitle className="text-2xl">Check your email</CardTitle>
             <CardDescription>
-              We've sent a password reset link to <strong>{email}</strong>
+              We&apos;ve sent a password reset link to <strong>{email}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-gray-600">
-              Click the link in the email to reset your password. If you don't see the email, check your spam folder.
+              Click the link in the email to reset your password. If you don&apos;t see the email, check your spam folder.
             </p>
             <Button
               variant="outline"
@@ -102,7 +102,7 @@ return (
         <CardHeader>
           <CardTitle className="text-2xl">Forgot Password</CardTitle>
           <CardDescription>
-            Enter your email address and we'll send you a link to reset your password
+            Enter your email address and we&apos;ll send you a link to reset your password
           </CardDescription>
         </CardHeader>
         <CardContent>
