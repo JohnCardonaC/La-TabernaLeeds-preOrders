@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { format, startOfDay, endOfDay, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, addWeeks, addMonths, parse } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { Calendar as CalendarIcon, Printer } from 'lucide-react';
@@ -147,7 +146,6 @@ function BookingsPage() {
   const [selectedChannel, setSelectedChannel] = useState<string>('All');
   const [selectedTableSize, setSelectedTableSize] = useState<string>('All');
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
-  const [selectedBookingForLog, setSelectedBookingForLog] = useState<Booking | null>(null);
   const [minLargeTableSize, setMinLargeTableSize] = useState<number>(6);
 
   const staticRanges = [
@@ -310,7 +308,7 @@ function BookingsPage() {
 
     fetchBookings();
     fetchSettings();
-  }, [ranges, selectedChannel, selectedTableSize]);
+  }, [ranges, selectedChannel, selectedTableSize, minLargeTableSize]);
 
   const fetchSettings = async () => {
     const supabase = createClient();
@@ -825,15 +823,15 @@ function BookingsPage() {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Notification Log for Booking {selectedBookingForLog?.booking_reference}
+              Notification Log for Booking {selectedBooking?.booking_reference}
             </DialogTitle>
             <DialogDescription>
               History of email notification attempts for this booking.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {selectedBookingForLog?.notification_log && selectedBookingForLog.notification_log.length > 0 ? (
-              selectedBookingForLog.notification_log.map((log: NotificationLogEntry, index: number) => (
+            {selectedBooking?.notification_log && selectedBooking.notification_log.length > 0 ? (
+              selectedBooking.notification_log.map((log: NotificationLogEntry, index: number) => (
                 <Card key={index} className="p-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
