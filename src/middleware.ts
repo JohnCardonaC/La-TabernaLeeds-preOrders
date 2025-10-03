@@ -12,7 +12,8 @@ export async function middleware(request: NextRequest) {
 
   // Auth condition not met, redirect to login page.
   // Allow public access to preorder page (it handles its own email verification)
-  if (!session && request.nextUrl.pathname !== '/login' && !request.nextUrl.pathname.startsWith('/preorder')) {
+  // Allow public access to password reset page
+  if (!session && request.nextUrl.pathname !== '/login' && !request.nextUrl.pathname.startsWith('/preorder') && !request.nextUrl.pathname.startsWith('/auth/reset-password')) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
